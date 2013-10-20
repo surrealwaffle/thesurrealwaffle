@@ -42,14 +42,14 @@ bool RunTo( float3 const &P3, float const tol ) {
 
 	// the unit vector for the direction to P from the player's position
 	float2 const 
-		facing = float2( cos( ::g_lpOrientation[ 0 ] ), ::sin( g_lpOrientation[ 1 ] ) ), // forwarding facing direction
+		facing = float2( cos( ::g_lpOrientation[ 0 ] ), ::sin( g_lpOrientation[ 0 ] ) ), // forwarding facing direction
 		direct = normalize( P - P0 ); // the unit vector for the direction to P from the player's position
 	float const 
 		forwardBias = dot( direct, facing ),
 		leftBias = (cross( facing, direct ))[2];
 
 	// use my interject library later to make this easier to do without resetting values
-	if ( forwardBias > 0.05 ) {
+	if ( forwardBias > 0.2f ) {
 		GetKey( KEY_W ) = 2;
 		GetKey( KEY_S ) = 0;
 	} else if ( forwardBias < -0.05 ) {
@@ -58,7 +58,7 @@ bool RunTo( float3 const &P3, float const tol ) {
 	}
 
 	
-	if ( leftBias > 0.05 ) {
+	if ( leftBias > 0.2f ) {
 		GetKey( KEY_A ) = 2;
 		GetKey( KEY_D ) = 0;
 	} else if ( leftBias < -0.05 ) {

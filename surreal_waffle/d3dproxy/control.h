@@ -111,7 +111,7 @@ float3 cross( float3 const&, float2 const& );
 // Moves the player in the direction of the supplied point.
 // Returns true iff the player is within tol^2 game units of the supplied points.
 // In this case, the player is not moved by this function.
-bool RunTo( float3 const&, float const tol = 0.08f * 0.08f );
+bool RunTo( float3 const&, float const tol = 0.2f * 0.2f );
 
 // Updates a key event table for GetKeyEvent( ).
 void PollKeys( void );

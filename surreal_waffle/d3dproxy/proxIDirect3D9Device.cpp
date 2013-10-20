@@ -19,16 +19,16 @@ HRESULT proxIDirect3DDevice9::Present(CONST RECT* pSourceRect,CONST RECT* pDestR
 	// honestly should just make this constant-time access
 	if ( GetKeyEvent( KEY_F1 ) == KEYEVENT_PRESSED ) {
 		b = true;
-		p = float3( -3.8f, -0.8f, 0.f );
-		::SubmitChat( L"going to red flag" );
+		p = float3( -3.25f, 0.f, 0.f );
+		::SubmitChat( L"going near red flag" );
 	} else if ( GetKeyEvent( KEY_F2 ) == KEYEVENT_PRESSED ) {
 		b = true;
 		p = float3( 0.f, 0.f, 0.f );
 		::SubmitChat( L"going to middle" );
 	} else if ( GetKeyEvent( KEY_F3 ) == KEYEVENT_PRESSED ) {
 		b = true;
-		p = float3( 3.8f, -0.8f, 0.f );
-		::SubmitChat( L"going to blue flag" );
+		p = float3( 3.25f, 0.f, 0.f );
+		::SubmitChat( L"going near blue flag" );
 	}
 
 	if ( b ) {
