@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="sigscan" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/sigscan" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/sigscan" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-fomit-frame-pointer" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-pedantic-errors" />
+			<Add option="-pedantic" />
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+			<Add option="-std=c++2a" />
+			<Add directory="include" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add library="dbghelp" />
+			<Add library="psapi" />
+		</Linker>
+		<Unit filename="include/sigscan/base.hpp" />
+		<Unit filename="include/sigscan/memory_range.hpp" />
+		<Unit filename="include/sigscan/patterns.hpp" />
+		<Unit filename="include/sigscan/scan.hpp" />
+		<Unit filename="include/sigscan/sigscan.hpp" />
+		<Unit filename="memory_range.cpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

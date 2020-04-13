@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="detours" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/detours" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option external_deps="../sigscan/bin/Debug/libsigscan.a;" />
+				<Option type="2" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+				</Compiler>
+				<Linker>
+					<Add directory="../sigscan/bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/detours" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option external_deps="../sigscan/bin/Release/libsigscan.a;" />
+				<Option type="2" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add directory="../sigscan/bin/Release" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-pedantic-errors" />
+			<Add option="-pedantic" />
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+			<Add option="-m32" />
+			<Add option="-std=c++2a" />
+			<Add directory="../sigscan/include" />
+			<Add directory="include" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add option="-m32" />
+			<Add library="sigscan" />
+		</Linker>
+		<Unit filename="detours.cpp" />
+		<Unit filename="include/detours/base.hpp" />
+		<Unit filename="include/detours/descriptors.hpp" />
+		<Unit filename="include/detours/detours.hpp" />
+		<Unit filename="include/detours/patch.hpp" />
+		<Unit filename="patch.cpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

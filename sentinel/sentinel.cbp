@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="sentinel" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/sentinel" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-g" />
+					<Add option="-DBUILD_DLL" />
+					<Add directory="../sigscan/include" />
+					<Add directory="../detours/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-static" />
+					<Add library="user32" />
+					<Add library="sigscan" />
+					<Add library="detours" />
+					<Add library="psapi" />
+					<Add library="dbghelp" />
+					<Add directory="../detours/bin/Debug" />
+					<Add directory="../sigscan/bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/sentinel" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-DBUILD_DLL" />
+					<Add directory="../sigscan/include" />
+					<Add directory="../detours/include" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add option="-static" />
+					<Add library="user32" />
+					<Add library="sigscan" />
+					<Add library="detours" />
+					<Add library="psapi" />
+					<Add library="dbghelp" />
+					<Add directory="../detours/bin/Release" />
+					<Add directory="../sigscan/bin/Release" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Winit-self" />
+			<Add option="-Wcast-align" />
+			<Add option="-Wextra" />
+			<Add option="-Wall" />
+			<Add option="-m32" />
+			<Add option="-Werror" />
+			<Add option="-ftemplate-backtrace-limit=0" />
+			<Add option="-std=c++2a" />
+			<Add option="-DSENTINEL_BUILD_DLL" />
+			<Add option="-DSENTINEL_DEBUG" />
+			<Add directory="include" />
+			<Add directory="utilities" />
+		</Compiler>
+		<Linker>
+			<Add option="-m32" />
+		</Linker>
+		<Unit filename="base.cpp" />
+		<Unit filename="chat.cpp" />
+		<Unit filename="console.cpp" />
+		<Unit filename="controls.cpp" />
+		<Unit filename="doxygen.hpp" />
+		<Unit filename="events.cpp" />
+		<Unit filename="globals.cpp" />
+		<Unit filename="include/sentinel/all.hpp" />
+		<Unit filename="include/sentinel/base.hpp" />
+		<Unit filename="include/sentinel/chat.hpp" />
+		<Unit filename="include/sentinel/config.hpp" />
+		<Unit filename="include/sentinel/console.hpp" />
+		<Unit filename="include/sentinel/controls.hpp" />
+		<Unit filename="include/sentinel/detail/inplace_ops_traits.hpp" />
+		<Unit filename="include/sentinel/detail/unique_callable.hpp" />
+		<Unit filename="include/sentinel/events.hpp" />
+		<Unit filename="include/sentinel/fundamental_types.hpp" />
+		<Unit filename="include/sentinel/fwd/all.hpp" />
+		<Unit filename="include/sentinel/fwd/globals_fwd.hpp" />
+		<Unit filename="include/sentinel/fwd/table_fwd.hpp" />
+		<Unit filename="include/sentinel/fwd/tags_fwd.hpp" />
+		<Unit filename="include/sentinel/globals.hpp" />
+		<Unit filename="include/sentinel/math/matrix.hpp" />
+		<Unit filename="include/sentinel/math/vector.hpp" />
+		<Unit filename="include/sentinel/object.hpp" />
+		<Unit filename="include/sentinel/raycast.hpp" />
+		<Unit filename="include/sentinel/script.hpp" />
+		<Unit filename="include/sentinel/sound.hpp" />
+		<Unit filename="include/sentinel/structures/all.hpp" />
+		<Unit filename="include/sentinel/structures/biped.hpp" />
+		<Unit filename="include/sentinel/structures/console.hpp" />
+		<Unit filename="include/sentinel/structures/controls.hpp" />
+		<Unit filename="include/sentinel/structures/effect.hpp" />
+		<Unit filename="include/sentinel/structures/globals.hpp" />
+		<Unit filename="include/sentinel/structures/item.hpp" />
+		<Unit filename="include/sentinel/structures/object.hpp" />
+		<Unit filename="include/sentinel/structures/player.hpp" />
+		<Unit filename="include/sentinel/structures/raycast.hpp" />
+		<Unit filename="include/sentinel/structures/script.hpp" />
+		<Unit filename="include/sentinel/structures/table.hpp" />
+		<Unit filename="include/sentinel/structures/tag.hpp" />
+		<Unit filename="include/sentinel/structures/unit.hpp" />
+		<Unit filename="include/sentinel/structures/weapon.hpp" />
+		<Unit filename="include/sentinel/tags/all.hpp" />
+		<Unit filename="include/sentinel/tags/collision_bsp.hpp" />
+		<Unit filename="include/sentinel/tags/collision_model.hpp" />
+		<Unit filename="include/sentinel/tags/effect.hpp" />
+		<Unit filename="include/sentinel/tags/game_globals.hpp" />
+		<Unit filename="include/sentinel/tags/generic.hpp" />
+		<Unit filename="include/sentinel/tags/item.hpp" />
+		<Unit filename="include/sentinel/tags/object.hpp" />
+		<Unit filename="include/sentinel/tags/projectile.hpp" />
+		<Unit filename="include/sentinel/tags/scenario.hpp" />
+		<Unit filename="include/sentinel/tags/structure_bsp.hpp" />
+		<Unit filename="include/sentinel/tags/weapon.hpp" />
+		<Unit filename="include/sentinel/traits.hpp" />
+		<Unit filename="include/sentinel/types.hpp" />
+		<Unit filename="loader.cpp" />
+		<Unit filename="loader.hpp" />
+		<Unit filename="main.cpp" />
+		<Unit filename="object.cpp" />
+		<Unit filename="raycast.cpp" />
+		<Unit filename="reve/chat.cpp" />
+		<Unit filename="reve/chat.hpp" />
+		<Unit filename="reve/console.cpp" />
+		<Unit filename="reve/console.hpp" />
+		<Unit filename="reve/controls.cpp" />
+		<Unit filename="reve/controls.hpp" />
+		<Unit filename="reve/descriptors.cpp" />
+		<Unit filename="reve/descriptors.hpp" />
+		<Unit filename="reve/engine.cpp" />
+		<Unit filename="reve/engine.hpp" />
+		<Unit filename="reve/globals.cpp" />
+		<Unit filename="reve/globals.hpp" />
+		<Unit filename="reve/init.cpp" />
+		<Unit filename="reve/init.hpp" />
+		<Unit filename="reve/memory.cpp" />
+		<Unit filename="reve/memory.hpp" />
+		<Unit filename="reve/object.cpp" />
+		<Unit filename="reve/object.hpp" />
+		<Unit filename="reve/raycast.cpp" />
+		<Unit filename="reve/raycast.hpp" />
+		<Unit filename="reve/script.cpp" />
+		<Unit filename="reve/script.hpp" />
+		<Unit filename="reve/sound.cpp" />
+		<Unit filename="reve/sound.hpp" />
+		<Unit filename="reve/table.cpp" />
+		<Unit filename="reve/table.hpp" />
+		<Unit filename="reve/types.hpp" />
+		<Unit filename="script.cpp" />
+		<Unit filename="sound.cpp" />
+		<Unit filename="utilities/wunduws.hpp" />
+		<Extensions>
+			<DoxyBlocks>
+				<comment_style block="0" line="2" />
+				<doxyfile_project />
+				<doxyfile_build />
+				<doxyfile_warnings />
+				<doxyfile_output />
+				<doxyfile_dot />
+				<general />
+			</DoxyBlocks>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

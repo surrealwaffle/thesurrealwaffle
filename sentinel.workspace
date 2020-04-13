@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Sentinel">
+		<Project filename="sigscan/sigscan.cbp" />
+		<Project filename="detours/detours.cbp">
+			<Depends filename="sigscan/sigscan.cbp" />
+		</Project>
+		<Project filename="sentinel/sentinel.cbp">
+			<Depends filename="sigscan/sigscan.cbp" />
+			<Depends filename="detours/detours.cbp" />
+		</Project>
+		<Project filename="sentutil/sentutil.cbp">
+			<Depends filename="sentinel/sentinel.cbp" />
+		</Project>
+		<Project filename="example_project/example_project.cbp">
+			<Depends filename="sentinel/sentinel.cbp" />
+			<Depends filename="sentutil/sentutil.cbp" />
+		</Project>
+		<Project filename="simulacrum/simulacrum.cbp">
+			<Depends filename="sigscan/sigscan.cbp" />
+			<Depends filename="detours/detours.cbp" />
+			<Depends filename="sentinel/sentinel.cbp" />
+			<Depends filename="sentutil/sentutil.cbp" />
+		</Project>
+		<Project filename="debug_utils/debug_utils.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

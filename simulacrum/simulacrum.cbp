@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="simulacrum" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/simulacrum" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DBUILD_DLL" />
+				</Compiler>
+				<Linker>
+					<Add library="user32" />
+					<Add directory="../sentinel/bin/Debug" />
+					<Add directory="../sentutil/bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/simulacrum" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-Wall" />
+					<Add option="-DBUILD_DLL" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="user32" />
+					<Add directory="../sentinel/bin/Release" />
+					<Add directory="../sentutil/bin/Release" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++2a" />
+			<Add directory="../sentinel/include" />
+			<Add directory="../sentutil/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add library="sentutil" />
+			<Add library="sentinel" />
+		</Linker>
+		<Unit filename="bot_ai.cpp" />
+		<Unit filename="bot_ai.hpp" />
+		<Unit filename="bot_control.cpp" />
+		<Unit filename="bot_control.hpp" />
+		<Unit filename="bsp_interface.cpp" />
+		<Unit filename="bsp_interface.hpp" />
+		<Unit filename="game_context.cpp" />
+		<Unit filename="game_context.hpp" />
+		<Unit filename="graph.cpp" />
+		<Unit filename="graph.hpp" />
+		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
+		<Unit filename="utility.cpp" />
+		<Unit filename="utility.hpp" />
+		<Extensions>
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
