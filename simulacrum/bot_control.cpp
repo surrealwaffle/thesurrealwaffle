@@ -176,14 +176,17 @@ void update(sentinel::digital_controls_state& digital,
         delta_xy = horizontal_orient_world_to_camera * delta_xy;
         delta_z  = vertical_orient_world_to_camera * delta_z;
 
-        const float delta_yaw   = std::atan2(delta_xy[1], delta_xy[0]);
-        const float delta_pitch = std::atan2(delta_z[1], delta_z[0]);
+        const float yaw_to_target   = std::atan2(delta_xy[1], delta_xy[0]);
+        const float delta_yaw       = seconds * aiming_delta_factor * yaw_to_target;
 
-        analog.turn_left = (seconds * aiming_delta_factor * delta_yaw);
-        analog.turn_up   = (seconds * aiming_delta_factor * delta_pitch);
+        const float pitch_to_target = std::atan2(delta_z[1], delta_z[0]);
+        const float delta_pitch     = seconds * aiming_delta_factor * pitch_to_target;
 
-        return delta_yaw < aiming_fire_threshold
-            && delta_pitch < aiming_fire_threshold;
+        analog.turn_left = delta_yaw;
+        analog.turn_up   = delta_pitch;
+
+        return std::abs(delta_yaw) < aiming_fire_threshold
+            && std::abs(delta_pitch) < aiming_fire_threshold;
     };
 
     bool do_fire = false;
