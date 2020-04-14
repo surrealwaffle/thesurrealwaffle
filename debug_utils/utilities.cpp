@@ -20,7 +20,14 @@ namespace {
 void time_chat(std::optional<std::string_view> text,
                std::optional<long>             channel);
 
+bool tantrum_digital(std::string_view input, short period, long hits);
+
 void chat_filter(long channel, int index, std::wstring_view text);
+
+void controls_filter(sentinel::digital_controls_state& digital,
+                     sentinel::analog_controls_state& analog,
+                     float seconds,
+                     long ticks);
 
 } // namespace (anonymous)
 
@@ -30,7 +37,9 @@ bool load()
 {
     using sentutil::script::install_script_function;
     return install_script_function<"sdbg_time_chat">(time_chat, "measures the time it takes for a string sent over a channel(default=all) to present in chat")
-        && sentutil::chat::install_chat_filter(chat_filter);
+        && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
+        && sentutil::chat::install_chat_filter(chat_filter)
+        && sentutil::controls::install_controls_filter(controls_filter);
 }
 
 } // namespace halo_debug
@@ -45,13 +54,47 @@ void time_chat(std::optional<std::string_view> text,
 
     time_chat_start_time = std::chrono::steady_clock::now();
     {
-        std::string_view t = text.value_or("test ping");
+        std::string_view t = text.value_or("test");
         time_chat_pong_string.clear();
         // transform is not necessarily correct but close enough
         std::transform(t.begin(), t.end(), std::back_inserter(time_chat_pong_string),
                        [] (char c) { return static_cast<wchar_t>(c); });
     }
     sentutil::chat::send_chat((int)channel.value_or(0L), time_chat_pong_string);
+}
+
+sentinel::frames_ubyte sentinel::digital_controls_state::* tantrum_action = nullptr;
+short tantrum_period = 0;
+long  tantrum_hits = 0;
+long  tantrum_ticks_to_hit = 0;
+bool tantrum_digital(std::string_view input, short period, long hits)
+{
+#define TANTRUM_CASE(name) if (input == #name) tantrum_action = &sentinel::digital_controls_state::name
+    TANTRUM_CASE(jump);
+    else TANTRUM_CASE(switch_grenade);
+    else TANTRUM_CASE(action);
+    else TANTRUM_CASE(switch_weapons);
+    else TANTRUM_CASE(melee);
+    else TANTRUM_CASE(flashlight);
+    else TANTRUM_CASE(secondary_trigger);
+    else TANTRUM_CASE(primary_trigger);
+    else TANTRUM_CASE(accept);
+    else TANTRUM_CASE(cancel);
+    else TANTRUM_CASE(crouch);
+    else TANTRUM_CASE(zoom);
+    else TANTRUM_CASE(show_scores);
+    else TANTRUM_CASE(reload);
+    else TANTRUM_CASE(pick_up_weapon);
+    else TANTRUM_CASE(say);
+    else TANTRUM_CASE(say_team);
+    else TANTRUM_CASE(say_vehicle);
+    else return (sentutil::console::cprintf({1, 1}, "no action named \"%s\"", input.data()), false);
+
+    period = std::max((short)1, period);
+    tantrum_period       = period;
+    tantrum_hits         = hits;
+    tantrum_ticks_to_hit = period;
+    return true;
 }
 
 void chat_filter(long channel, int index, std::wstring_view text)
@@ -63,6 +106,24 @@ void chat_filter(long channel, int index, std::wstring_view text)
         auto now = std::chrono::steady_clock::now();
         auto millis = std::chrono::duration_cast<std::chrono::milliseconds>(now - time_chat_start_time);
         sentutil::console::cprintf("time_chat result: %ld ms", (long)millis.count());
+    }
+}
+
+void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
+                     [[maybe_unused]] sentinel::analog_controls_state& analog,
+                     [[maybe_unused]] float seconds,
+                     [[maybe_unused]] long ticks)
+{
+    if (ticks && tantrum_action != nullptr && tantrum_hits > 0) {
+        if ((tantrum_ticks_to_hit -= ticks) <= 0) {
+            digital.*tantrum_action = 1;
+
+            while ((tantrum_ticks_to_hit += tantrum_period) <= 0) { /* DO NOTHING */ }
+            if (--tantrum_hits <= 0)
+                sentutil::console::cprintf({1, 0, 1}, "tantrum done");
+        } else {
+            digital.*tantrum_action = 0;
+        }
     }
 }
 
