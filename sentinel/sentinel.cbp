@@ -54,6 +54,9 @@
 					<Add directory="../detours/bin/Release" />
 					<Add directory="../sigscan/bin/Release" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='[[ IO.CopyFile(ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\sentinel\\bin\\Release\\sentinel.dll&quot;)), ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\build\\sentinel.dll&quot;)), true); ]]' />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>

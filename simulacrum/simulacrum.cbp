@@ -42,6 +42,9 @@
 					<Add directory="../sentinel/bin/Release" />
 					<Add directory="../sentutil/bin/Release" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='[[ IO.CopyFile(ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\simulacrum\\bin\\Release\\simulacrum.dll&quot;)), ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\build\\modules\\simulacrum.dll&quot;)), true); ]]' />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>

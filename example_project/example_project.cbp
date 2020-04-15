@@ -43,6 +43,9 @@
 					<Add directory="../sentinel/bin/Release" />
 					<Add directory="../sentutil/bin/Release" />
 				</Linker>
+				<ExtraCommands>
+					<Add after='[[ IO.CopyFile(ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\example_project\\bin\\Release\\example_project.dll&quot;)), ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\build\\modules\\example_project.dll&quot;)), true); ]]' />
+				</ExtraCommands>
 			</Target>
 		</Build>
 		<Compiler>
