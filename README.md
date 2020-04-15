@@ -19,15 +19,29 @@ When I am sufficiently satisfied with the state of the `sentinel` framework, I w
 ## Prerequisites
 
 In order to build these projects, you will need:
- * Boost 1.72 or later (tested), specifically the Boost.Geometry and Boost.Iterator libraries,
- * A 32-bit compiler with C++20 support (GCC 9.2 with -std=c++2a on MinGW suffices).
+ * Boost 1.72 or later (tested), specifically the Boost.Geometry and Boost.Iterator libraries;
+ * a 32-bit compiler with C++20 support (GCC 9.2 with -std=c++2a on MinGW suffices);
+ * CodeBlocks, to open and build the projects.
+
+To build with CodeBlocks, open the workspace file (`sentinel.workspace`) and Build Workspace.
+`sentinel.dll` will be copied into the `build` directory.
+The `sentinel` modules included in this project will be copeid into `build\modules`.
 
 ## Installing
 
  1. Copy `sentinel.dll` into the `controls` subfolder located within the Halo install directory.
  2. Create a folder named `sentinel` in the Halo install directory.
  3. Copy `simulacrum.dll` into the `sentinel` subfolder.
- 
+
+Alternatively, one may add the `build\modules` directory to the environment under the variable `SENTINEL_MODULES_DIRECTORY` and ignore steps 2 and 3.
+
+## Additional Features
+
+If `sentinel` loads successfully into Halo, then the following features are added:
+ * command-line option `-no-sentinel`, which effectively turns off `sentinel` entirely;
+ * command-line option `-create-console`, which allocates a separate console that presents debug information;
+ * a fix console text fade speed at high framerates.
+
 ## Forewarning
 
 This project spans a slow decade of development, various compilers and standards, changing preferences, and experimentation with new language features.
