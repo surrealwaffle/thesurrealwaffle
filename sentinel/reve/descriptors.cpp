@@ -328,6 +328,17 @@ static const descriptor_sequence globals_EditionString {
 
 /*
 CPU Disasm
+Address Hex dump          Command                                        Comments
+$ ==>   |.  B9 00020000   MOV ECX,200                                    ; first 800 bytes
+$+5     |.  BF 54816A00   MOV EDI,OFFSET game::current_map_cache_header  ; static map cache header, first 800 bytes
+*/
+static const descriptor_sequence globals_MapFileHeader {
+    bytes{0xB9, 0x00, 0x02, 0x00, 0x00,
+          0xBF}, read_pointer{ref(globals::ptr_MapFileHeader)}
+}; // globals_MapFileHeader
+
+/*
+CPU Disasm
 Addres>Hex dump           Command                                                  Comments
 $ ==>  |.  891D AC856B00  MOV DWORD PTR DS:[6B85AC],EBX
 $+6    |.  891D B0856B00  MOV DWORD PTR DS:[6B85B0],EBX
@@ -637,6 +648,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(globals_RuntimeSoundGlobals),
     MAKE_PATCH(globals_CommandLineArgs),
     MAKE_PATCH(globals_EditionString),
+    MAKE_PATCH(globals_MapFileHeader),
 
     MAKE_PATCH(init_ProcessStartup),
     MAKE_PATCH(init_LoadMapCacheSP),

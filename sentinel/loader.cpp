@@ -1,10 +1,10 @@
 #include "loader.hpp"
 
-#include <algorithm>
-
 #include <cstdio>
+#include <cstdlib>
 #include <tchar.h>
 
+#include <algorithm>
 #include <vector>
 #include <memory>
 
@@ -27,7 +27,10 @@ struct module_entry {
     module_entry& operator=(module_entry const&) = delete;
 };
 
+std::basic_string<TCHAR> modules_directory;
 std::vector<module_entry> modules;
+
+void init_modules_directory();
 
 }
 
@@ -37,6 +40,7 @@ bool LoadClientLibrary(LPCTSTR lpModuleName) {
     if (!lpModuleName)
         return false;
 
+    init_modules_directory();
     _tprintf(_T("loading library \"%s\"\n"), lpModuleName);
 
     for (const auto& module : modules) {
@@ -46,13 +50,8 @@ bool LoadClientLibrary(LPCTSTR lpModuleName) {
         }
     }
 
-    TCHAR path[MAX_PATH + 1u];
-    path[MAX_PATH] = (TCHAR)'\0';
-    ::_sntprintf(path, MAX_PATH,
-                 _T(SENTINEL_APPLICATION_DIR) _T("/%s"), lpModuleName);
-
-
-    HMODULE hModule = LoadLibrary(path);
+    std::basic_string<TCHAR> path = modules_directory + "\\" + lpModuleName;
+    HMODULE hModule = LoadLibrary(path.c_str());
     if (hModule == NULL) {
         _tprintf(_T("failed to load library \"%s\"\n"), lpModuleName);
         return false;
@@ -87,7 +86,9 @@ void LoadClientLibraries()
     WIN32_FIND_DATA ffd;
     HANDLE          hFind;
 
-    hFind = FindFirstFile(SENTINEL_APPLICATION_DIR "/*.dll", &ffd);
+    init_modules_directory();
+    hFind = FindFirstFile((modules_directory + _T("\\*.dll")).c_str(), &ffd);
+
     if (hFind == INVALID_HANDLE_VALUE)
         return;
 
@@ -105,6 +106,7 @@ void UnloadClientLibraries()
 }
 
 void PerformSecondaryClientLoads() {
+    init_modules_directory();
     for (auto&& module : modules) {
         using client_load_tproc = void (*)();
         auto load = (client_load_tproc)GetProcAddress(module.module_handle,
@@ -115,3 +117,18 @@ void PerformSecondaryClientLoads() {
 }
 
 } } // namespace sentinel::impl_loader
+
+namespace {
+
+void init_modules_directory()
+{
+    if (!modules_directory.empty())
+        return;
+
+    if (const TCHAR* sentinel_load_dir = _tgetenv(_T(SENTINEL_ENV_MODULES_DIRECTORY)))
+        modules_directory = sentinel_load_dir;
+    else
+        modules_directory = _T(SENTINEL_APPLICATION_DIR);
+}
+
+} // namespace (anonymous)

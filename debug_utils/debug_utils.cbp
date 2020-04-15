@@ -56,6 +56,8 @@
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
+		<Unit filename="utilities.cpp" />
+		<Unit filename="utilities.hpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

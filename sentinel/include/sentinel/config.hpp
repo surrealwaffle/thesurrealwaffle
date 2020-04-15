@@ -2,9 +2,10 @@
 
 #define SENTINEL_PRINT_DEBUG
 
-#define SENTINEL_APPLICATION_DIR    "sentinel"
-#define SENTINEL_CLIENT_LOAD_PROC   "sentinelclient_Load"
-#define SENTINEL_CLIENT_UNLOAD_PROC "sentinelclient_Unload"
+#define SENTINEL_APPLICATION_DIR       "sentinel"
+#define SENTINEL_ENV_MODULES_DIRECTORY "SENTINEL_MODULES_DIRECTORY"
+#define SENTINEL_CLIENT_LOAD_PROC      "sentinelclient_Load"
+#define SENTINEL_CLIENT_UNLOAD_PROC    "sentinelclient_Unload"
 
 #define SENTINEL_VECTOR_SMALL_NORM 0.001f
 
