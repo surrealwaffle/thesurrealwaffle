@@ -57,6 +57,7 @@ inline sentinel::console_globals_type*&       ptr_ConsoleGlobals = sentinel_Glob
 inline sentinel::machine_globals_type*&       ptr_MachineGlobals = sentinel_Globals_globals.machine_globals;
 inline sentinel::map_globals_type*&           ptr_MapGlobals = sentinel_Globals_globals.map_globals;
 inline sentinel::runtime_sound_globals_type*& ptr_RuntimeSoundGlobals = sentinel_Globals_globals.runtime_sound_globals;
+inline sentinel::map_file_header_type*&       ptr_MapFileHeader = sentinel_Globals_globals.map_file_header;
 
 extern command_line_args_type* ptr_CommandLineArgs;
 

@@ -47,7 +47,8 @@ bool Init()
         && ptr_MapGlobals
         && ptr_CameraGlobals
         && ptr_RuntimeSoundGlobals
-        && ptr_CommandLineArgs;
+        && ptr_CommandLineArgs
+        && ptr_MapFileHeader;
 }
 
 void Debug()
@@ -64,6 +65,7 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", ptr_MapGlobals);
     SENTINEL_DEBUG_VAR("%p", ptr_CameraGlobals);
     SENTINEL_DEBUG_VAR("%p", ptr_RuntimeSoundGlobals);
+    SENTINEL_DEBUG_VAR("%p", ptr_MapFileHeader);
 }
 
 } } // namespace reve::globals

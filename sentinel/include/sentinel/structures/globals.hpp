@@ -154,6 +154,26 @@ struct runtime_sound_globals_type {
 	table_type<void> *lpSounds; ///< Pointer to the sounds table.
 }; static_assert(sizeof(runtime_sound_globals_type) == 0x20);
 
+struct map_file_header_type {
+    signature head;
+
+    uint32 client_edition; // 0x7 on PC, 0x261 on CE
+    int32  decompressed_file_size;
+    uint32 unknown00;
+    int32  meta_data_offset;
+    int32  meta_data_size;
+    uint32 unknown01;
+    uint32 unknown02;
+    h_char map_name[32];
+    h_char client_version[32];
+    enum_short map_type; // 0=SP, 1=MP, 2=UI
+    uint32 checksum;
+
+    char pad[0x794];
+
+    signature foot;
+}; static_assert(sizeof(map_file_header_type) == 0x800);
+
 static_assert(offsetof(machine_globals_type, now_count) == 0x00);
 static_assert(offsetof(machine_globals_type, now_millis) == 0x08);
 static_assert(offsetof(machine_globals_type, unknown_counter) == 0x10);
@@ -195,6 +215,17 @@ static_assert(offsetof(runtime_sound_globals_type, unknown1) == 0x13);
 static_assert(offsetof(runtime_sound_globals_type, variety) == 0x14);
 static_assert(offsetof(runtime_sound_globals_type, unknown2) == 0x18);
 static_assert(offsetof(runtime_sound_globals_type, lpSounds) == 0x1C);
+
+static_assert(offsetof(map_file_header_type, head) == 0x000);
+static_assert(offsetof(map_file_header_type, client_edition) == 0x004);
+static_assert(offsetof(map_file_header_type, decompressed_file_size) == 0x008);
+static_assert(offsetof(map_file_header_type, meta_data_offset) == 0x010);
+static_assert(offsetof(map_file_header_type, meta_data_size) == 0x014);
+static_assert(offsetof(map_file_header_type, map_name) == 0x020);
+static_assert(offsetof(map_file_header_type, client_version) == 0x040);
+static_assert(offsetof(map_file_header_type, map_type) == 0x060);
+static_assert(offsetof(map_file_header_type, checksum) == 0x064);
+static_assert(offsetof(map_file_header_type, foot) == 0x7FC);
 
 }
 
