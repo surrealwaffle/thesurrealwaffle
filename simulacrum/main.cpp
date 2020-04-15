@@ -320,7 +320,7 @@ void display_value(std::string_view name)
 
 namespace {
 
-bool        simulacrum_enabled = true;
+bool        simulacrum_enabled = false;
 std::string current_cache_name;
 
 void load_map_cache(std::string_view cache_name);
