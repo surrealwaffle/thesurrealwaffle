@@ -2,6 +2,8 @@
 
 A basic player automation hack for Halo PC (retail) and Custom Edition.
 
+[![16 Halo](https://img.youtube.com/vi/16omQqFGpJ8/0.jpg)](https://www.youtube.com/watch?v=16omQqFGpJ8)
+
 ## Included Projects
 
 This repository includes:
