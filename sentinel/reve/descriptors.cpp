@@ -470,14 +470,14 @@ static const descriptor_sequence raycast_CastRay {
 }; // raycast_CastRay
 
 /*
-$ ==>     |.  8BF8             MOV EDI,EAX
-$+2       |.  33F6             XOR ESI,ESI
-$+4       |.  BB 588B6800      MOV EBX,OFFSET script::ScriptFunctionsArray
+$ ==>   |.  BB 588B6800  MOV EBX,OFFSET script::ScriptFunctionsArray
+...
+$+52    |.  66:81FE 0A02 |CMP SI,20A
 */
 static const descriptor_sequence script_ScriptFunctionsArray {
-    bytes{0x8B, 0xF8,
-          0x33, 0xF6,
-          0xBB}, read_pointer{ref(script::ptr_ScriptFunctionsArray)}
+    bytes{0xBB}, read_pointer{ref(script::ptr_ScriptFunctionsArray)},
+    ignore{0x52 - 0x05},
+    bytes{0x66, 0x81, 0xFE}, read_integral{ref(script::ScriptFunctionsArraySize)}
 };
 
 /*

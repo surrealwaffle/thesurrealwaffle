@@ -14,7 +14,13 @@
 
 namespace {
 
+constexpr auto maximum_script_functions = std::numeric_limits<sentinel::h_short>::max();
+
 std::vector<const reve::script::script_function*> script_functions;
+std::vector<unsigned char*> script_functions_array_references;
+std::vector<unsigned char*> script_functions_array_count_references;      // as h_short
+std::vector<unsigned char*> script_functions_array_long_count_references; // as h_long
+std::vector<detours::patch> script_functions_array_patches;
 
 extern "C"
 const reve::script::script_function**
@@ -33,6 +39,8 @@ const reve::script::script_function* LookupScriptFunction(std::string_view name)
 void SetScriptEngineFunctionsExports();
 
 bool PerformDeepProcedureHook();
+
+bool InvalidateScriptFunctionsArrayReferences();
 
 } // namespace (anonymous)
 
@@ -81,13 +89,13 @@ sentinel_handle InstallScriptFunction(const script_function* function,
                                    [] (auto f) { return f == &empty_function; });
     const auto index = insert_pos - script_functions.cbegin();
 
-    constexpr auto max_number_functions = std::numeric_limits<h_short>::max();
-    if (max_number_functions <= index) {
+    if (index >= maximum_script_functions) {
         std::fprintf(stderr, "no room for user function\n");
         return nullptr;
     }
 
-    bool insert_at_end = insert_pos == script_functions.end();
+    const bool insert_at_end = insert_pos == script_functions.end();
+    //const bool need_invalidation = insert_at_end && script_functions.size() == script_functions.capacity();
     bool function_added = false;
     sentinel_handle handle = [&] {
         try {
@@ -111,6 +119,8 @@ sentinel_handle InstallScriptFunction(const script_function* function,
         }
     }();
 
+    InvalidateScriptFunctionsArrayReferences();
+
     if (handle && pFunctionIndex)
         *pFunctionIndex = index;
     return handle;
@@ -118,11 +128,6 @@ sentinel_handle InstallScriptFunction(const script_function* function,
 
 bool Init()
 {
-    switch (edition) {
-    case GameEdition::combat_evolved: ScriptFunctionsArraySize = 0x20A; break;
-    case GameEdition::custom_edition: ScriptFunctionsArraySize = 0x211; break;
-    }
-
     if (!ptr_SymbolLookupProcedures)
         return false;
 
@@ -228,291 +233,117 @@ const reve::script::script_function* LookupScriptFunction(std::string_view name)
     return *pDef;
 }
 
-#define DEFINE_PROCEDURE_INDEXER_HANDLER2(dst, index, save1, save2)    \
-void procedure_index_handler_##dst##_##index() __attribute__((naked)); \
-void procedure_index_handler_##dst##_##index()                         \
-{                                                                      \
-    asm("pushfl \n\t"                                                  \
-        "pushl %" #save1 " \n\t"                                       \
-        "pushl %" #save2 " \n\t"                                       \
-                                                                       \
-        "pushl %" #index " \n\t"                                       \
-        "call _sentinel_script_get_function_by_index \n\t"             \
-        "add $4, %esp \n\t"                                            \
-        "mov %eax, %" #dst " \n\t"                                     \
-                                                                       \
-        "popl %" #save2 " \n\t"                                        \
-        "popl %" #save1 " \n\t"                                        \
-        "popfl \n\t"                                                   \
-        "ret \n\t");                                                   \
-}
-
-#define DEFINE_PROCEDURE_INDEXER_HANDLER3(dst, index, save1, save2, save3) \
-void procedure_index_handler_##dst##_##index() __attribute__((naked));     \
-void procedure_index_handler_##dst##_##index()                             \
-{                                                                          \
-    asm("pushfl \n\t"                                                      \
-        "pushl %" #save1 " \n\t"                                           \
-        "pushl %" #save2 " \n\t"                                           \
-        "pushl %" #save3 " \n\t"                                           \
-                                                                           \
-        "pushl %" #index " \n\t"                                           \
-        "call _sentinel_script_get_function_by_index \n\t"                 \
-        "add $4, %esp \n\t"                                                \
-        "mov %eax, %" #dst " \n\t"                                         \
-                                                                           \
-        "popl %" #save3 " \n\t"                                            \
-        "popl %" #save2 " \n\t"                                            \
-        "popl %" #save1 " \n\t"                                            \
-        "popfl \n\t"                                                       \
-        "ret \n\t");                                                       \
-}
-
-#define DEFINE_MOV_PROCEDURES_OFFSET_HANDLER(dst)                  \
-void mov_procedures_offset_handler_##dst() __attribute__((naked)); \
-void mov_procedures_offset_handler_##dst()                         \
-{                                                                  \
-    asm("pushfl \n\t"                                              \
-        "pushl %eax \n\t"                                          \
-        "pushl %edx \n\t"                                          \
-        "pushl %ecx \n\t"                                          \
-                                                                   \
-        "call _sentinel_script_get_functions_array \n\t"           \
-        "movl %eax, %" #dst " \n\t"                                \
-                                                                   \
-        "popl %ecx \n\t"                                           \
-        "popl %edx \n\t"                                           \
-        "popl %eax \n\t"                                           \
-        "popfl \n\t"                                               \
-        "ret \n\t");                                               \
-}
-
-// 8B0485 588B6800  MOV EAX,DWORD PTR DS:[EAX*4+ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(eax, eax, edx, ecx)
-
-// 8B0495 588B6800  MOV EAX,DWORD PTR DS:[EDX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(eax, edx, edx, ecx)
-
-// 8B048D 588B6800  MOV EAX,DWORD PTR DS:[ECX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(eax, ecx, edx, ecx)
-
-// 8B148D 588B6800  |MOV EDX,DWORD PTR DS:[ECX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(edx, ecx, eax, ecx)
-
-// 8B1495 588B6800  MOV EDX,DWORD PTR DS:[EDX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(edx, edx, eax, ecx)
-
-// 8B0C85 588B6800  MOV ECX,DWORD PTR DS:[EAX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER2(ecx, eax, eax, edx)
-
-// 8B1C85 588B6800  MOV EBX,DWORD PTR DS:[EAX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER3(ebx, eax, eax, edx, ecx)
-
-// 8B2C85 588B6800  MOV EBP,DWORD PTR DS:[EAX*4+script::ScriptFunctionArray]
-DEFINE_PROCEDURE_INDEXER_HANDLER3(ebp, eax, eax, edx, ecx)
-
-// BB 588B6800   MOV EBX,OFFSET script::ScriptFunctionsArray
-DEFINE_MOV_PROCEDURES_OFFSET_HANDLER(ebx)
-
-// BD 588B6800   MOV EBP,OFFSET script::ScriptFunctionsArray
-DEFINE_MOV_PROCEDURES_OFFSET_HANDLER(ebp)
-
-// 66:81FE 0A02        |CMP SI,20A
-void cmp_procedure_counter_handler_si() __attribute__((naked));
-void cmp_procedure_counter_handler_si()
-{
-    asm("pushl %eax \n\t"
-        "pushl %edx \n\t"
-        "pushl %ecx \n\t"
-
-        "call _sentinel_script_get_functions_array_size \n\t"
-        "cmp %ax, %si \n\t"
-
-        "popl %ecx \n\t"
-        "popl %edx \n\t"
-        "popl %eax \n\t"
-        "ret \n\t");
-}
-
-// C74424 10 0A020000  MOV DWORD PTR SS:[ESP+10],20A
-void mov_procedure_count_to_local_handler() __attribute__((naked));
-void mov_procedure_count_to_local_handler()
-{
-    asm("pushl %eax \n\t"
-        "pushl %edx \n\t"
-        "pushl %ecx \n\t"
-
-        "call _sentinel_script_get_functions_array_size \n\t"
-        "movsx %ax, %eax \n\t"
-        "movl %eax, 0x20(%esp) \n\t"
-
-        "popl %ecx \n\t"
-        "popl %edx \n\t"
-        "popl %eax \n\t"
-        "ret \n\t");
-}
-
-// BD 11020000         MOV EBP,211
-void mov_procedure_count_to_ebp_handler() __attribute__((naked));
-void mov_procedure_count_to_ebp_handler()
-{
-    asm("pushl %eax \n\t"
-        "pushl %edx \n\t"
-        "pushl %ecx \n\t"
-
-        "call _sentinel_script_get_functions_array_size \n\t"
-        "movsx %ax, %eax \n\t"
-        "movl %eax, %ebp \n\t"
-
-        "popl %ecx \n\t"
-        "popl %edx \n\t"
-        "popl %eax \n\t"
-        "ret \n\t");
-}
-
-#undef DEFINE_PROCEDURE_INDEXER_HANDLER2
-#undef DEFINE_PROCEDURE_INDEXER_HANDLER3
-#undef DEFINE_MOV_PROCEDURES_OFFSET_HANDLER
-
 bool PerformDeepProcedureHook()
 {
     using reve::script::ptr_ScriptFunctionsArray;
-    using detours::patch;
-    using detours::descriptors::detour_call;
+    using reve::script::ScriptFunctionsArraySize;
     using detours::descriptors::bytes;
     using detours::descriptors::range_descriptor;
     using detours::descriptors::imbued_descriptor;
-    using detours::get_detour_data;
 
-    std::unordered_map<std::uint32_t, void*> indexing_replacement_handlers {
-        {0x8B0485u, (void*)&procedure_index_handler_eax_eax},
-        {0x8B0495u, (void*)&procedure_index_handler_eax_edx},
-        {0x8B048Du, (void*)&procedure_index_handler_eax_ecx},
-        {0x8B148Du, (void*)&procedure_index_handler_edx_ecx},
-        {0x8B1495u, (void*)&procedure_index_handler_edx_edx},
-        {0x8B0C85u, (void*)&procedure_index_handler_ecx_eax},
-        {0x8B1C85u, (void*)&procedure_index_handler_ebx_eax},
-        {0x8B2C85u, (void*)&procedure_index_handler_ebp_eax},
-    };
+    auto array_bytes       = detours::as_byte_array((std::uint32_t)ptr_ScriptFunctionsArray);
+    auto array_count_bytes = detours::as_byte_array((std::int32_t)reve::script::ScriptFunctionsArraySize);
 
-    std::unordered_map<std::uint32_t, void*> offset_replacement_handles {
-        {0xBBu, (void*)&mov_procedures_offset_handler_ebx},
-        {0xBDu, (void*)&mov_procedures_offset_handler_ebp},
-    };
-
-    auto array_addr
-        = detours::as_byte_array((std::uint32_t)ptr_ScriptFunctionsArray);
-    range_descriptor index_script_function_descriptor {
-        imbued_descriptor {
-            bytes{0x8B, -1, -1,
-                  array_addr[0], array_addr[1], array_addr[2], array_addr[3]},
-            [&indexing_replacement_handlers] (unsigned char* site, auto patch_out)
-                -> bool
-            {
-                auto inst = site[0] << 16 | site[1] << 8 | site[2];
-                if (!indexing_replacement_handlers.count(inst)) {
-                    SENTINEL_DEBUG_MESSAGE("at %p, unhandled inst: %x\n", site, inst);
-                    return false;
-                }
-
-                void* handler = indexing_replacement_handlers.at(inst);
-
-                patch p(site, get_detour_data<2>(detour_call, site, handler));
-                if (p) {
-                    *patch_out++ = std::move(p);
-                    return true;
-                }
-
-                return false;
-            }
+    // MOV EDX,DWORD PTR DS:[ECX*4+script::ScriptFunctionsArray]; 8B 14 8D <>
+    // MOV EBP,DWORD PTR DS:[EAX*4+script::ScriptFunctionsArray]; 8B 2C 85 <>
+    // MOV EAX,DWORD PTR DS:[ECX*4+script::ScriptFunctionsArray]; 8B 04 8D <>
+    // MOV EDX,DWORD PTR DS:[EDX*4+script::ScriptFunctionsArray]; 8B 14 95 <>
+    // MOV EBX,DWORD PTR DS:[EAX*4+script::ScriptFunctionsArray]; 8B 1C 85 <>
+    range_descriptor index_script_function_descriptor { imbued_descriptor {
+        bytes{0x8B, -1, -1, array_bytes[0], array_bytes[1], array_bytes[2], array_bytes[3]},
+        [] (unsigned char* site, auto /*unused*/) {
+            if ((site[1] == 0x14 && site[2] == 0x8D) ||
+                (site[1] == 0x2C && site[2] == 0x85) ||
+                (site[1] == 0x04 && site[2] == 0x8D) ||
+                (site[1] == 0x14 && site[2] == 0x95) ||
+                (site[1] == 0x1C && site[2] == 0x85))
+                script_functions_array_references.push_back(site + 3);
+            return true;
         }
-    };
+    } };
 
-    range_descriptor mov_script_functions_offset_descriptor {
-        imbued_descriptor {
-            bytes{-1, array_addr[0], array_addr[1], array_addr[2], array_addr[3]},
-            [&offset_replacement_handles] (unsigned char* site, auto patch_out)
-                -> bool
-            {
-                auto inst = site[0];
-                if (!offset_replacement_handles.count(inst)) {
-                    SENTINEL_DEBUG_MESSAGE("at %p, unhandled inst: %x\n", site, inst);
-                    return false;
-                }
-
-                void* handler = offset_replacement_handles.at(inst);
-
-                patch p(site, get_detour_data(detour_call, site, handler));
-                if (p) {
-                    *patch_out++ = std::move(p);
-                    return true;
-                }
-
-                return false;
-            }
+    // MOV EBP,OFFSET script::ScriptFunctionsArray; BD <>
+    // MOV EBX,OFFSET script::ScriptFunctionsArray; BB <>
+    range_descriptor mov_script_functions_offset_descriptor { imbued_descriptor {
+        bytes{-1, array_bytes[0], array_bytes[1], array_bytes[2], array_bytes[3]},
+        [] (unsigned char* site, auto /*unused*/) {
+            if (site[0] == 0xBD || site[0] == 0xBB)
+                script_functions_array_references.push_back(site + 1);
+            return true;
         }
-    };
+    } };
 
-    auto num_functions
-        = detours::as_byte_array(reve::script::ScriptFunctionsArraySize);
-    range_descriptor cmp_procedure_counter_descriptor {
-        imbued_descriptor {
-            bytes{0x66, 0x81, 0xFE, num_functions[0], num_functions[1]},
-            [] (unsigned char* site, auto patch_out) -> bool
-            {
-                auto handler = &cmp_procedure_counter_handler_si;
-                patch p(site, get_detour_data(detour_call, site, handler));
-                if (p) {
-                    *patch_out++ = std::move(p);
-                    return true;
-                }
-                return false;
-            }
+    // CMP SI, *; (0x20A on PC, 0x211 on CE) signed semantics
+    range_descriptor cmp_functions_array_size_descriptor { imbued_descriptor {
+        bytes{0x66, 0x81, 0xFE, array_count_bytes[0], array_count_bytes[1]},
+        [] (unsigned char* site, auto) {
+            script_functions_array_count_references.push_back(site + 3);
+            return true;
         }
-    };
+    } };
 
-    range_descriptor mov_procedure_count_to_local_descriptor {
-        imbued_descriptor {
-            bytes{0xC7, 0x44, 0x24, 0x10, 0x0A, 0x02, 0x00, 0x00},
-            [] (unsigned char* site, auto patch_out) -> bool
-            {
-                auto handler = &mov_procedure_count_to_local_handler;
-                patch p(site, get_detour_data<3>(detour_call, site, handler));
-                if (p) {
-                    *patch_out++ = std::move(p);
-                    return true;
-                }
-                return false;
-            }
+    // MOV DWORD PTR SS:[ESP+10],20A (specific to PC)
+    range_descriptor mov_functions_array_count_to_local_descriptor { imbued_descriptor {
+        bytes{0xC7, 0x44, 0x24, 0x10, array_count_bytes[0], array_count_bytes[1], array_count_bytes[2], array_count_bytes[3]},
+        [] (unsigned char* site, auto) {
+            script_functions_array_long_count_references.push_back(site + 4);
+            return true;
         }
-    };
+    } };
 
-    range_descriptor mov_procedure_count_to_ebp_descriptor {
-        imbued_descriptor {
-            bytes{0xBD, 0x11, 0x02, 0x00, 0x00},
-            [] (unsigned char* site, auto patch_out) -> bool
-            {
-                auto handler = &mov_procedure_count_to_ebp_handler;
-                patch p(site, get_detour_data(detour_call, site, handler));
-                if (p) {
-                    *patch_out++ = std::move(p);
-                    return true;
-                }
-                return false;
-            }
+    // MOV EBP, 211 (specific to CE, counterpart to the above descriptor)
+    range_descriptor mov_functions_array_count_to_ebp_descriptor { imbued_descriptor {
+        bytes{0xBD, array_count_bytes[0], array_count_bytes[1], array_count_bytes[2], array_count_bytes[3]},
+        [] (unsigned char* site, auto) {
+            script_functions_array_long_count_references.push_back(site + 1);
+            return true;
         }
-    };
+    } };
 
-    if (!detours::make_patch(index_script_function_descriptor) ||
-        !detours::make_patch(mov_script_functions_offset_descriptor) ||
-        !detours::make_patch(cmp_procedure_counter_descriptor) ||
-        !(detours::make_patch(mov_procedure_count_to_local_descriptor) ||
-          detours::make_patch(mov_procedure_count_to_ebp_descriptor))) {
+    detours::make_patch(index_script_function_descriptor);
+    detours::make_patch(mov_script_functions_offset_descriptor);
+    detours::make_patch(cmp_functions_array_size_descriptor);
+    detours::make_patch(mov_functions_array_count_to_local_descriptor);
+    detours::make_patch(mov_functions_array_count_to_ebp_descriptor);
+
+    if (script_functions_array_long_count_references.size() != 1 ||
+        script_functions_array_count_references.size() != 2 ||
+        script_functions_array_references.size() != 10 ||
+        !InvalidateScriptFunctionsArrayReferences()) {
         SENTINEL_DEBUG_MESSAGE("deep hooks for script engine were unsuccessful\n");
         return false;
     }
 
     return true;
+}
+
+bool InvalidateScriptFunctionsArrayReferences()
+{
+    if (script_functions.size() > maximum_script_functions)
+        return false;
+
+    script_functions_array_patches.clear();
+    {
+        auto count_bytes = detours::as_byte_array(static_cast<sentinel::h_long>(script_functions.size()));
+        for (auto long_count_site : script_functions_array_long_count_references)
+            script_functions_array_patches.emplace_back(long_count_site, count_bytes);
+    }
+
+    {
+        auto count_bytes = detours::as_byte_array(static_cast<sentinel::h_short>(script_functions.size()));
+        for (auto short_count_site : script_functions_array_count_references)
+            script_functions_array_patches.emplace_back(short_count_site, count_bytes);
+    }
+
+    {
+        auto array_bytes = detours::as_byte_array((std::uint32_t)script_functions.data());
+        for (auto array_site : script_functions_array_references)
+            script_functions_array_patches.emplace_back(array_site, array_bytes);
+    }
+
+    return std::all_of(script_functions_array_patches.cbegin(),
+                       script_functions_array_patches.cend(),
+                       [] (auto& patch) { return static_cast<bool>(patch); });
 }
 
 } // namespace (anonymous)
