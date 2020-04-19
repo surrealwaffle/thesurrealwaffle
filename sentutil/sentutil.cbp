@@ -50,7 +50,9 @@
 		<Unit filename="chat.cpp" />
 		<Unit filename="console.cpp" />
 		<Unit filename="globals.cpp" />
+		<Unit filename="include/sentutil/all.hpp" />
 		<Unit filename="include/sentutil/chat.hpp" />
+		<Unit filename="include/sentutil/color.hpp" />
 		<Unit filename="include/sentutil/console.hpp" />
 		<Unit filename="include/sentutil/controls.hpp" />
 		<Unit filename="include/sentutil/effect.hpp" />

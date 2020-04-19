@@ -6,8 +6,6 @@
 
 namespace sentutil{ namespace console {
 
-inline constexpr sentinel::argbf default_console_color = {1.0f, 0.7f, 0.7f, 0.7f};
-
 /** \brief Prints colored, formatted text to the console.
  *
  * \param[in] color The color to use.

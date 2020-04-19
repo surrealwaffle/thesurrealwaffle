@@ -4,6 +4,7 @@
 #include <sentinel/all.hpp>
 
 #include <sentutil/chat.hpp>
+#include <sentutil/color.hpp>
 #include <sentutil/console.hpp>
 #include <sentutil/controls.hpp>
 #include <sentutil/effect.hpp>
