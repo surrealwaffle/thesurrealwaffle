@@ -1,6 +1,6 @@
 # Simulacrum (formerly TheSurrealWaffle)
 
-A basic player automation hack for Halo PC (retail) and Custom Edition.
+A basic player automation hack for the Halo PC (retail) and Halo CE (Custom Edition) clients.
 
 [![16 Halo](https://img.youtube.com/vi/16omQqFGpJ8/0.jpg)](https://www.youtube.com/watch?v=16omQqFGpJ8)
 
@@ -20,18 +20,19 @@ When I am sufficiently satisfied with the state of the `sentinel` framework, I w
 
 ## Prerequisites
 
-In order to build these projects, you will need:
- * Boost 1.72 or later (tested), specifically the Boost.Geometry and Boost.Iterator libraries;
- * a 32-bit compiler with C++20 support (GCC 9.2 with -std=c++2a on MinGW suffices);
+To build, you will need:
+ * Boost 1.72 or later (built against), specifically the Boost.Geometry and Boost.Iterator libraries;
+ * GCC 9.2 or greater, capable of compiling 32-bit applications (built against);
  * CodeBlocks, to open and build the projects.
 
 To build with CodeBlocks, open the workspace file (`sentinel.workspace`) and Build Workspace.
+You will likely need to change the compiler the project files use.
 `sentinel.dll` will be copied into the `build` directory.
 The `sentinel` modules included in this project will be copeid into `build\modules`.
 
 ## Installing
 
- 1. Copy `sentinel.dll` into the `controls` subfolder located within the Halo install directory.
+ 1. Copy `sentinel.dll` into the `controls` (or `mods` if you are using the beta release of Chimera) subfolder located within the Halo install directory.
  2. Create a folder named `sentinel` in the Halo install directory.
  3. Copy `simulacrum.dll` into the `sentinel` subfolder.
 
@@ -42,10 +43,11 @@ Alternatively, one may add the `build\modules` directory to the environment unde
 If `sentinel` loads successfully into Halo, then the following features are added:
  * command-line option `-no-sentinel`, which effectively turns off `sentinel` entirely;
  * command-line option `-create-console`, which allocates a separate console that presents debug information;
- * a fix console text fade speed at high framerates.
+ * a fix for console text fade speed at high framerates.
 
 ## Forewarning
 
-This project spans a slow decade of development, various compilers and standards, changing preferences, and experimentation with new language features.
+This project spans a slow decade of development and various compilers, standards, and preferences.
 As a result, quality and style are likely to vary throughout and through time as I update this project.
 For instance, the `detours` and `sigscan` libraries have a lot wrong with them that I hope to correct, granted the time to focus on them rather than `simulacrum`.
+Stylistically, there is much within `sentinel` that I wish to change and add.
