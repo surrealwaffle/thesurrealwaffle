@@ -78,6 +78,22 @@ namespace sentinel { namespace tags {
         int32 UNKNOWN5[11];
     }; static_assert(sizeof(game_globals::player_information_type) == 0xF4);
 
+    static_assert(offsetof(game_globals, sounds) == 0x0F8);
+    static_assert(offsetof(game_globals, camera) == 0x104);
+    static_assert(offsetof(game_globals, player_control) == 0x110);
+    static_assert(offsetof(game_globals, difficulty) == 0x11C);
+    static_assert(offsetof(game_globals, grenades) == 0x128);
+    static_assert(offsetof(game_globals, rasterizer_data) == 0x134);
+    static_assert(offsetof(game_globals, interface_bitmaps) == 0x140);
+    static_assert(offsetof(game_globals, weapon_list) == 0x14C);
+    static_assert(offsetof(game_globals, cheat_powerups) == 0x158);
+    static_assert(offsetof(game_globals, multiplayer_information) == 0x164);
+    static_assert(offsetof(game_globals, player_information) == 0x170);
+    static_assert(offsetof(game_globals, first_person_interface) == 0x17C);
+    static_assert(offsetof(game_globals, falling_damage) == 0x188);
+    static_assert(offsetof(game_globals, materials) == 0x194);
+    static_assert(offsetof(game_globals, playlist_members) == 0x1A0);
+
     static_assert(offsetof(game_globals::player_information_type, airborne_acceleration) == 0x54);
     static_assert(offsetof(game_globals::player_information_type, coop_respawn_effect) == 0xB8);
 } } // namespace sentinel::tags

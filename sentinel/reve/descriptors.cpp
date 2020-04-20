@@ -19,6 +19,7 @@
 #include "script.hpp"
 #include "sound.hpp"
 #include "table.hpp"
+#include "window.hpp"
 
 namespace reve::descriptors {
 
@@ -564,7 +565,7 @@ static const descriptor_sequence sound_DirectSoundInterfaces {
           0x68}, read_pointer{ref(sound::ptr_DirectSoundInterfaces)},
     bytes{0x55,
           0xFF, 0x15}
-};
+}; // sound_DirectSoundInterfaces
 
 /*
 $ ==>  |> \0FBF15 28547200    |MOVSX EDX,WORD PTR DS:[SecondaryBuffers.count]
@@ -573,7 +574,7 @@ $+7    |.  47                 |INC EDI
 static const descriptor_sequence sound_SecondarySoundBuffers {
     bytes{0x0F, 0xBF, 0x15}, read_pointer{ref(sound::ptr_SecondarySoundBuffers)},
     bytes{0x47}
-};
+}; // sound_SecondarySoundBuffers
 
 /* not unique, but all matches call the function
 $ ==>  |> \8BD6         |MOV EDX,ESI             ; identity
@@ -586,7 +587,7 @@ static const descriptor_sequence table_RemoveTableElement {
           0x8B, 0xC7},
     read_call_rel32{ref(table::proc_RemoveTableElement)},
     bytes{0x8D, 0x4E, 0x01}
-};
+}; // table_RemoveTableElement
 
 /*
 $ ==>  |.  68 00010000  PUSH 100                     ; /datum_count = 0x100
@@ -601,7 +602,7 @@ static const descriptor_sequence table_CreateTableFromAllocator {
     detour{detour_target,
            (void*)table::tramp_CreateTableFromAllocator,
            ref(table::proc_CreateTableFromAllocator)}
-};
+}; // table_CreateTableFromAllocator
 
 /*
 $ ==>  |.  6A 20        PUSH 20                  ; /datum_count = 0x20
@@ -616,7 +617,29 @@ static const descriptor_sequence table_CreateTableFromHeap {
     detour{detour_target,
            (void*)table::tramp_CreateTableFromHeap,
            ref(table::proc_CreateTableFromHeap)}
-};
+}; // table_CreateTableFromHeap
+
+/*
+$ ==>   |.  68 86000000     PUSH 86                                        ; /Bitmap = 134.
+$+5     |.  52              PUSH EDX                                       ; |hInst => [722BB8] = NULL
+$+6     |.  8935 C4617400   MOV DWORD PTR DS:[globals::window::hWnd],ESI   ; |
+*/
+static const descriptor_sequence window_WindowHandle {
+    bytes{0x68, 0x86, 0x00, 0x00, 0x00,
+          0x52,
+          0x89, 0x35}, read_pointer{ref(window::ptr_hWnd)}
+}; // window_WindowHandle
+
+/*
+$ ==>  |.  68 00030000   PUSH 300
+$+5    |.  6A 00         PUSH 0
+$+7    |.  A3 4CD17100   MOV DWORD PTR DS:[render_device_info::heap1],EAX
+*/
+static const descriptor_sequence window_RenderDeviceInfo {
+    bytes{0x68, 0x00, 0x03, 0x00, 0x00,
+          0x6A, 0x00,
+          0xA3}, read_pointer{ref(window::ptr_RenderDeviceInfo)}
+}; // window_RenderDeviceInfo
 
 #define MAKE_PATCH(name, ...) detours::batch_descriptor{#name, name, __VA_ARGS__}
 static const std::tuple patch_descriptors
@@ -677,7 +700,10 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(table_RemoveTableElement),
     MAKE_PATCH(table_CreateTableFromAllocator,
                ref(table::patch_CreateTableFromAllocator)),
-    MAKE_PATCH(table_CreateTableFromHeap, ref(table::patch_CreateTableFromHeap))
+    MAKE_PATCH(table_CreateTableFromHeap, ref(table::patch_CreateTableFromHeap)),
+
+    MAKE_PATCH(window_WindowHandle),
+    MAKE_PATCH(window_RenderDeviceInfo)
 };
 #undef MAKE_PATCH
 
@@ -696,6 +722,7 @@ constexpr std::array module_descriptors {
     MAKE_MODULE(script),
     MAKE_MODULE(sound),
     MAKE_MODULE(table),
+    MAKE_MODULE(window)
 };
 
 } // namespace anonymous

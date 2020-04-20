@@ -8,4 +8,4 @@ SENTINEL_API
 void
 sentinel_Sound_SetPlaybackFrequencyModifier(float modifier);
 
-} // extern "C""
+} // extern "C"

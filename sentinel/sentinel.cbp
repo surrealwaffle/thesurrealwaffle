@@ -133,6 +133,7 @@
 		<Unit filename="include/sentinel/tags/weapon.hpp" />
 		<Unit filename="include/sentinel/traits.hpp" />
 		<Unit filename="include/sentinel/types.hpp" />
+		<Unit filename="include/sentinel/window.hpp" />
 		<Unit filename="loader.cpp" />
 		<Unit filename="loader.hpp" />
 		<Unit filename="main.cpp" />
@@ -165,9 +166,12 @@
 		<Unit filename="reve/table.cpp" />
 		<Unit filename="reve/table.hpp" />
 		<Unit filename="reve/types.hpp" />
+		<Unit filename="reve/window.cpp" />
+		<Unit filename="reve/window.hpp" />
 		<Unit filename="script.cpp" />
 		<Unit filename="sound.cpp" />
 		<Unit filename="utilities/wunduws.hpp" />
+		<Unit filename="window.cpp" />
 		<Extensions>
 			<DoxyBlocks>
 				<comment_style block="0" line="2" />

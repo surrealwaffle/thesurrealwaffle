@@ -12,10 +12,6 @@
 #define NOCRYPT
 #endif // NOCRYPT
 
-#ifndef NOGDI
-#define NOGDI
-#endif // NOGDI
-
 #ifndef NOSERVICE
 #define NOSERVICE
 #endif // NOSERVICE
