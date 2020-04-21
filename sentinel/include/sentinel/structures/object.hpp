@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__OBJECT_HPP
-#define SENTINEL__STRUCTURES__OBJECT_HPP
+#pragma once
 
 #include <cstddef> // offsetof
 
@@ -242,6 +241,4 @@ static_assert(offsetof(object_prototype, bases) == 0x80);
 #endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 #endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 
-}
-
-#endif // SENTINEL__STRUCTURES__OBJECT_HPP
+} // namespace sentinel

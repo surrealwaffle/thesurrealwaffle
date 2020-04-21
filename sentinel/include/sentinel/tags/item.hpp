@@ -4,45 +4,44 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__ITEM_HPP
-#define SENTINEL__TAGS__ITEM_HPP
+#pragma once
 
 #include <sentinel/types.hpp>
 #include <sentinel/tags/generic.hpp>
 #include <sentinel/tags/object.hpp>
 
 namespace sentinel { namespace tags {
-    struct item_definition {
-        int32 flags;
 
-        int16 message_index;
-        int16 sort_order;
-        real  scale;
-        int16 hud_message_value_scale;
+struct item_definition {
+    int32 flags;
 
-        int32 UNKNOWN0[4];
+    int16 message_index;
+    int16 sort_order;
+    real  scale;
+    int16 hud_message_value_scale;
 
-        int16 function_exports[4];
+    int32 UNKNOWN0[4];
 
-        int32 UNKNOWN1[41];
+    int16 function_exports[4];
 
-        tag_reference<void> material_effects;
-        tag_reference<void> collision_sound;
+    int32 UNKNOWN1[41];
 
-        int32 UNKNOWN2[30];
+    tag_reference<void> material_effects;
+    tag_reference<void> collision_sound;
 
-        struct {
-            real min_delay;
-            real max_delay;
+    int32 UNKNOWN2[30];
 
-            tag_reference<void> detonating_effect;
-            tag_reference<void> detonation_effect;
-        } detonation;
-    }; static_assert(sizeof(item_definition) == 0x18C);
+    struct {
+        real min_delay;
+        real max_delay;
 
-    struct item : object {
-        item_definition item;
-    }; static_assert(sizeof(item) == 0x308);
+        tag_reference<void> detonating_effect;
+        tag_reference<void> detonation_effect;
+    } detonation;
+}; static_assert(sizeof(item_definition) == 0x18C);
+
+struct item : object {
+    item_definition item;
+}; static_assert(sizeof(item) == 0x308);
+
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__ITEM_HPP

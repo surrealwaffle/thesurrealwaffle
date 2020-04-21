@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__STRUCTURE_BSP_HPP
-#define SENTINEL__TAGS__STRUCTURE_BSP_HPP
+#pragma once
 
 #include <cstddef>
 
@@ -100,5 +99,3 @@ struct structure_bsp::leaf_block_element {
 }; static_assert(sizeof(structure_bsp::leaf_block_element) == 0x10);
 
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__STRUCTURE_BSP_HPP

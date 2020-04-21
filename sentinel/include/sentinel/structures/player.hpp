@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__PLAYER_HPP
-#define SENTINEL__STRUCTURES__PLAYER_HPP
+#pragma once
 
 #include <cstddef> // offsetof
 
@@ -62,6 +61,4 @@ static_assert(offsetof(player, network_index) == 0x067);
 static_assert(offsetof(player, ping) == 0x0DC);
 #endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 
-}
-
-#endif // SENTINEL__STRUCTURES__PLAYER_HPP
+} // namespace sentinel

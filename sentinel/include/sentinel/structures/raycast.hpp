@@ -4,9 +4,6 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__RAYCAST_HPP
-#define SENTINEL__STRUCTURES__RAYCAST_HPP
-
 #include <sentinel/types.hpp>
 #include <sentinel/fwd/table_fwd.hpp>
 
@@ -70,6 +67,4 @@ static_assert(offsetof(raycast_result_type, flags) == 0x4C);
 static_assert(offsetof(raycast_result_type, breakable_surface) == 0x4D);
 static_assert(offsetof(raycast_result_type, material_index) == 0x4E);
 
-}
-
-#endif // SENTINEL__STRUCTURES__RAYCAST_HPP
+} // namespace sentinel

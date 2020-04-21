@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__EFFECT_HPP
-#define SENTINEL__STRUCTURES__EFFECT_HPP
+#pragma once
 
 #include <sentinel/types.hpp>
 #include <sentinel/tags/effect.hpp>
@@ -19,6 +18,4 @@ struct effect {
     int32         unknown01[61];
 }; static_assert(sizeof(effect) == 0xFC);
 
-}
-
-#endif
+} // namespace sentinel

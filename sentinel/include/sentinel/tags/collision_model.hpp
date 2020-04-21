@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__COLLISION_MODEL_HPP
-#define SENTINEL__TAGS__COLLISION_MODEL_HPP
+#pragma once
 
 #include <cstddef> // offsetof
 
@@ -101,5 +100,3 @@ static_assert(offsetof(collision_model, materials) == 0x234);
 static_assert(offsetof(collision_model, pathfinding) == 0x268);
 
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__COLLISION_MODEL_HPP

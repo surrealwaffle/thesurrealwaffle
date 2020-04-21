@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__BIPED_HPP
-#define SENTINEL__STRUCTURES__BIPED_HPP
+#pragma once
 
 #include <sentinel/types.hpp>
 #include <sentinel/structures/unit.hpp>
@@ -28,6 +27,4 @@ struct biped : unit {
     biped_datum biped;
 }; static_assert(sizeof(biped) == 0x550);
 
-}
-
-#endif // SENTINEL__STRUCTURES__BIPED_HPP
+} // namespace sentinel

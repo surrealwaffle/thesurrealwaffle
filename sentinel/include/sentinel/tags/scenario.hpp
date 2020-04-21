@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__SCENARIO_HPP
-#define SENTINEL__TAGS__SCENARIO_HPP
+#pragma once
 
 #include <cstddef>
 
@@ -172,5 +171,3 @@ struct scenario::structure_bsp_block_element {
     tag_reference<structure_bsp> structure_bsp;
 }; static_assert(sizeof(scenario::structure_bsp_block_element) == 0x20);
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__SCENARIO_HPP

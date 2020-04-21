@@ -4,9 +4,6 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__WEAPON_HPP
-#define SENTINEL__STRUCTURES__WEAPON_HPP
-
 #include <cstddef> // offsetof
 
 #include <sentinel/types.hpp>
@@ -57,6 +54,4 @@ struct weapon : item {
 }; static_assert(sizeof(weapon) == 0x340);
 
 
-}
-
-#endif // SENTINEL__STRUCTURES__WEAPON_HPP
+} // namespace sentinel

@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__PROJECTILE_HPP
-#define SENTINEL__TAGS__PROJECTILE_HPP
+#pragma once
 
 #include <sentinel/types.hpp>
 #include <sentinel/tags/generic.hpp>
@@ -67,5 +66,3 @@ namespace sentinel { namespace tags {
     }; static_assert(sizeof(projectile) == 0x24C);
 
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__PROJECTILE_HPP

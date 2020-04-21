@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__TAGS__EFFECT_HPP
-#define SENTINEL__TAGS__EFFECT_HPP
+#pragma once
 
 #include <sentinel/types.hpp>
 #include <sentinel/tags/generic.hpp>
@@ -112,5 +111,3 @@ struct effect::event::particle {
 }; static_assert(sizeof(effect::event::particle) == 0xE8);
 
 } } // namespace sentinel::tags
-
-#endif // SENTINEL__TAGS__EFFECT_HPP

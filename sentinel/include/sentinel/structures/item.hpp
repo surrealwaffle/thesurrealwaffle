@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__ITEM_HPP
-#define SENTINEL__STRUCTURES__ITEM_HPP
+#pragma once
 
 #include <cstddef> // offsetof
 
@@ -26,6 +25,4 @@ struct item : object {
     item_datum item;
 }; static_assert(sizeof(item) == 0x22C);
 
-}
-
-#endif // SENTINEL__STRUCTURES__ITEM_HPP
+} // namespace sentinel

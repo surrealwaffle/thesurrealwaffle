@@ -4,8 +4,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          https://www.boost.org/LICENSE_1_0.txt)
 
-#ifndef SENTINEL__STRUCTURES__TABLE_HPP
-#define SENTINEL__STRUCTURES__TABLE_HPP
+#pragma once
 
 #include <cstddef> // offsetof
 #include <cstdint> // std::uintptr_t
@@ -107,6 +106,4 @@ static_assert(offsetof(table_type<void>, next_salt) == 0x32);
 static_assert(offsetof(table_type<void>, array) == 0x34);
 #endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 
-}
-
-#endif // SENTINEL__STRUCTURES__TABLE_HPP
+} // namespace sentinel
