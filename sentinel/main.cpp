@@ -13,6 +13,7 @@
 #include "reve/descriptors.hpp"
 
 #include <sentinel/all.hpp>
+#include <sentinel/all.hpp> // test multiple inclusion
 
 namespace {
 
