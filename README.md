@@ -51,3 +51,7 @@ This project spans a slow decade of development and various compilers, standards
 As a result, quality and style are likely to vary throughout and through time as I update this project.
 For instance, the `detours` and `sigscan` libraries have a lot wrong with them that I hope to correct, granted the time to focus on them rather than `simulacrum`.
 Stylistically, there is much within `sentinel` that I wish to change and add.
+
+## License
+
+The projects listed above are licensed under the Boost Software License Version 1.0, see [LICENSE_1_0.txt](../blob/master/LICENSE_1_0.txt) for more information.
