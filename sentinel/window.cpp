@@ -21,3 +21,10 @@ sentinel_window_GetRenderDeviceInfo()
 {
     return reve::window::ptr_RenderDeviceInfo;
 }
+
+SENTINEL_API
+sentinel::cursor_info*
+sentinel_window_GetCursorInfo()
+{
+    return reve::window::ptr_CursorInfo;
+}

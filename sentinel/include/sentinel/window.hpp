@@ -42,6 +42,19 @@ struct render_device_info {
     LPDIRECT3D9       pD3D;
 }; static_assert(sizeof(render_device_info) == 0x30);
 
+struct cursor_info {
+    boolean unknown00;
+    boolean unknown01;
+    boolean unknown02;
+
+    struct {
+        h_long x;
+        h_long y;
+    } position;
+
+    // quite a bit more goes here
+};
+
 static_assert(offsetof(render_device_info, heap1) == 0x00);
 static_assert(offsetof(render_device_info, heap2) == 0x04);
 static_assert(offsetof(render_device_info, index_heap1) == 0x08);
@@ -71,5 +84,9 @@ sentinel_window_GetWindow();
 SENTINEL_API
 sentinel::render_device_info*
 sentinel_window_GetRenderDeviceInfo();
+
+SENTINEL_API
+sentinel::cursor_info*
+sentinel_window_GetCursorInfo();
 
 } // extern "C"

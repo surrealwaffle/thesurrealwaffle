@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="imgui_overlay_example" />
+		<Option pch_mode="2" />
+		<Option compiler="mingw32" />
+		<Build>
+			<Target title="Debug">
+				<Option output="bin/Debug/imgui_overlay_example" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-DBUILD_DLL" />
+				</Compiler>
+				<Linker>
+					<Add library="gdi32" />
+					<Add library="xinput" />
+					<Add library="user32" />
+					<Add directory="../sentinel/bin/Debug" />
+					<Add directory="../sentutil/bin/Debug" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/imgui_overlay_example" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="3" />
+				<Option compiler="mingw32" />
+				<Option createDefFile="1" />
+				<Option createStaticLib="1" />
+				<Compiler>
+					<Add option="-O2" />
+					<Add option="-Wall" />
+					<Add option="-DBUILD_DLL" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+					<Add library="gdi32" />
+					<Add library="xinput" />
+					<Add library="user32" />
+					<Add directory="../sentinel/bin/Release" />
+					<Add directory="../sentutil/bin/Release" />
+				</Linker>
+				<ExtraCommands>
+					<Add after='[[ IO.CopyFile(ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\imgui_overlay_example\\bin\\Release\\imgui_overlay_example.dll&quot;)), ReplaceMacros(_(&quot;$(WORKSPACE_DIR)\\build\\modules\\imgui_overlay_example.dll&quot;)), true); ]]' />
+				</ExtraCommands>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-std=c++2a" />
+			<Add directory="../sentinel/include" />
+			<Add directory="../sentutil/include" />
+		</Compiler>
+		<Linker>
+			<Add option="-static" />
+			<Add library="sentutil" />
+			<Add library="sentinel" />
+		</Linker>
+		<Unit filename="hook.cpp" />
+		<Unit filename="hook.hpp" />
+		<Unit filename="imgui/imconfig.h" />
+		<Unit filename="imgui/imgui.cpp" />
+		<Unit filename="imgui/imgui.h" />
+		<Unit filename="imgui/imgui_demo.cpp" />
+		<Unit filename="imgui/imgui_draw.cpp" />
+		<Unit filename="imgui/imgui_impl_dx9.cpp" />
+		<Unit filename="imgui/imgui_impl_dx9.h" />
+		<Unit filename="imgui/imgui_impl_win32.cpp" />
+		<Unit filename="imgui/imgui_impl_win32.h" />
+		<Unit filename="imgui/imgui_internal.h" />
+		<Unit filename="imgui/imgui_widgets.cpp" />
+		<Unit filename="imgui/imstb_rectpack.h" />
+		<Unit filename="imgui/imstb_textedit.h" />
+		<Unit filename="imgui/imstb_truetype.h" />
+		<Unit filename="main.cpp" />
+		<Unit filename="main.h" />
+		<Extensions />
+	</Project>
+</CodeBlocks_project_file>

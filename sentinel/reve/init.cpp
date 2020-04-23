@@ -32,6 +32,7 @@ process_init_config_tproc  proc_ProcessInitConfig  = nullptr;
 process_connect_args_tproc proc_ProcessConnectArgs = nullptr;
 load_map_cache_tproc       proc_LoadMapCache       = nullptr;
 instantiate_map_tproc      proc_InstantiateMap     = nullptr;
+cleanup_game_tproc         proc_CleanupGame        = nullptr;
 
 void hook_ProcessInitConfig()
 {
@@ -75,6 +76,12 @@ void tramp_InstantiateMap()
         cb();
 }
 
+void hook_CleanupGame()
+{
+    sentinel::impl_loader::UnloadClientLibraries();
+    return proc_CleanupGame();
+}
+
 sentinel_handle InstallLoadMapCacheCallback(load_map_cache_callback&& callback)
 { return load_map_cache_callbacks.push_back(std::move(callback)); }
 
@@ -86,8 +93,8 @@ bool Init()
     return proc_ProcessInitConfig
         && proc_ProcessConnectArgs
         && proc_LoadMapCache
-        && proc_InstantiateMap
-        && patch_InstantiateMap;
+        && proc_InstantiateMap && patch_InstantiateMap
+        && proc_CleanupGame;
 }
 
 void Debug()
@@ -97,6 +104,7 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", proc_LoadMapCache);
     SENTINEL_DEBUG_VAR("%p", proc_InstantiateMap);
     SENTINEL_DEBUG_VAR("%d", (bool)patch_InstantiateMap);
+    SENTINEL_DEBUG_VAR("%p", proc_CleanupGame);
 }
 
 } } // namespace reve::init

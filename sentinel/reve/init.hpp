@@ -56,6 +56,9 @@ using process_connect_args_tproc __attribute__((cdecl))
 using load_map_cache_tproc __attribute__((cdecl, regparm(1)))
     = bool8(*)(P_IN h_ccstr cache_name /*EAX*/);
 
+using cleanup_game_tproc __attribute__((cdecl))
+    = void(*)();
+
 /** \brief Instantiates the current map's entities, such as objects.
  *
  * \sa proc_LoadMapCache
@@ -69,6 +72,7 @@ extern process_init_config_tproc  proc_ProcessInitConfig;
 extern process_connect_args_tproc proc_ProcessConnectArgs;
 extern load_map_cache_tproc       proc_LoadMapCache;
 extern instantiate_map_tproc      proc_InstantiateMap;
+extern cleanup_game_tproc         proc_CleanupGame;
 
 /** \brief Hook for \ref proc_ProcessInitConfig.
  *
@@ -92,6 +96,12 @@ bool8 hook_ProcessConnectArgs() __attribute__((cdecl));
  */
 bool8 hook_LoadMapCache(P_IN h_ccstr cache_name) __attribute__((cdecl, regparm(1)));
 
+/** \brief Hook called when the game is being closed safely.
+ *
+ * Unloads client libraries.
+ */
+void hook_CleanupGame() __attribute__((cdecl));
+
 /** \brief Trampoline for \ref proc_InstantiateMap.
  *
  * Notifies client libraries of the map instantiation after instantiation.
@@ -112,6 +122,7 @@ static_assert(std::is_same_v<process_connect_args_tproc,
                              decltype(&hook_ProcessConnectArgs)>);
 static_assert(std::is_same_v<load_map_cache_tproc, decltype(&hook_LoadMapCache)>);
 static_assert(std::is_same_v<instantiate_map_tproc, decltype(&tramp_InstantiateMap)>);
+static_assert(std::is_same_v<cleanup_game_tproc, decltype(&hook_CleanupGame)>);
 
 } } // namespace reve::init
 

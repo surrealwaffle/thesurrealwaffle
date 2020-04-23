@@ -406,6 +406,19 @@ static const descriptor_sequence init_InstantiateMap {
 }; // init_InstantiateMap
 
 /*
+$ ==>  |.  83C4 04       ADD ESP,4
+$+3    |.  E8 CC5CF8FF   CALL RunGame()
+$+8    |.  E8 C7F6FFFF   CALL CleanupGame()
+$+D    |>  8B45 E0       MOV EAX,DWORD PTR SS:[EBP-20]
+*/
+static const descriptor_sequence init_CleanupGame {
+    bytes{0x83, 0xC4, 0x04,
+          0xE8, -1, -1, -1, -1},
+    detour{detour_call, init::hook_CleanupGame, ref(init::proc_CleanupGame)},
+    bytes{0x8B, 0x45, 0xE0}
+}; // init_CleanupGame
+
+/*
 $ ==>     |.  8B35 BCA06300  MOV ESI,DWORD PTR DS:[<&KERNEL32.GlobalFree>]
 $+6       |.  33DB           XOR EBX,EBX
 $+8       |.  3BC3           CMP EAX,EBX
@@ -647,6 +660,19 @@ static const descriptor_sequence window_RenderDeviceInfo {
           0xA3}, read_pointer{ref(window::ptr_RenderDeviceInfo)}
 }; // window_RenderDeviceInfo
 
+/*
+$ ==>   |.  83F8 FF       CMP EAX,-1
+$+3     |.  57            PUSH EDI
+$+4     |.  74 23         JE SHORT 00496ECD
+$+6     |.  8A0D 808F7100 MOV CL,BYTE PTR DS:[718F80]
+*/
+static const descriptor_sequence window_CursorInfo {
+    bytes{0x83, 0xF8, 0xFF,
+          0x57,
+          0x74, 0x23,
+          0x8A, 0x0D}, read_pointer{ref(window::ptr_CursorInfo)}
+};
+
 #define MAKE_PATCH(name, ...) detours::batch_descriptor{#name, name, __VA_ARGS__}
 static const std::tuple patch_descriptors
 {
@@ -683,6 +709,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(init_LoadMapCacheSP),
     MAKE_PATCH(init_LoadMapCacheMP),
     MAKE_PATCH(init_InstantiateMap, ref(init::patch_InstantiateMap)),
+    MAKE_PATCH(init_CleanupGame),
 
     MAKE_PATCH(memory_GlobalFreeImport),
 
@@ -709,7 +736,8 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(table_CreateTableFromHeap, ref(table::patch_CreateTableFromHeap)),
 
     MAKE_PATCH(window_WindowHandle),
-    MAKE_PATCH(window_RenderDeviceInfo)
+    MAKE_PATCH(window_RenderDeviceInfo),
+    MAKE_PATCH(window_CursorInfo)
 };
 #undef MAKE_PATCH
 

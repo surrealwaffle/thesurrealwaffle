@@ -12,6 +12,7 @@
 namespace sentinel {
 
 struct render_device_info;
+struct cursor_info;
 
 } // namespace sentinel
 
@@ -19,6 +20,7 @@ namespace reve { namespace window {
 
 extern HWND*                         ptr_hWnd;
 extern sentinel::render_device_info* ptr_RenderDeviceInfo;
+extern sentinel::cursor_info*        ptr_CursorInfo;
 
 bool Init();
 

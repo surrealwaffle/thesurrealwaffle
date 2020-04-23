@@ -28,6 +28,8 @@ void time_chat(std::optional<std::string_view> text,
 
 bool tantrum_digital(std::string_view input, short period, long hits);
 
+void la_cucaracha();
+
 void chat_filter(long channel, int index, std::wstring_view text);
 
 void controls_filter(sentinel::digital_controls_state& digital,
@@ -44,6 +46,7 @@ bool load()
     using sentutil::script::install_script_function;
     return install_script_function<"sdbg_time_chat">(time_chat, "measures the time it takes for a string sent over a channel(default=all) to present in chat")
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
+        && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
         && sentutil::chat::install_chat_filter(chat_filter)
         && sentutil::controls::install_controls_filter(controls_filter);
 }
@@ -103,6 +106,14 @@ bool tantrum_digital(std::string_view input, short period, long hits)
     return true;
 }
 
+int cucaracha_index = -1;
+int cucaracha_subindex = 0;
+void la_cucaracha()
+{
+    cucaracha_index = 0;
+    cucaracha_subindex = 0;
+}
+
 void chat_filter(long channel, int index, std::wstring_view text)
 {
     const bool is_user = sentutil::globals::players[index].network_index == sentinel_GetLocalPlayerNetworkIndex();
@@ -129,6 +140,52 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
                 sentutil::console::cprintf({1, 0, 1}, "tantrum done");
         } else {
             digital.*tantrum_action = 0;
+        }
+    }
+
+    {
+        struct cucaracha_point {
+            int duration;
+            int pause;
+        };
+
+        constexpr cucaracha_point cucaracha_data[] {
+            {4, 2},
+            {4, 2},
+            {4, 2},
+            {7, 2},
+            {6, 3},
+            {3, 2},
+            {3, 2},
+            {3, 2},
+            {7, 2},
+            {6, 4},
+            {5, 1},
+            {5, 1},
+            {3, 1},
+            {2, 1},
+            {2, 1},
+            {2, 1},
+            {5, 0},
+        };
+
+        auto get_pause_end = [] (const cucaracha_point& p) { return p.duration + p.pause; };
+
+        if (cucaracha_index >= 0 && (unsigned)cucaracha_index >= std::size(cucaracha_data)) {
+            cucaracha_index    = -1;
+            cucaracha_subindex = 0;
+        }
+
+        if (cucaracha_index >= 0) {
+            while ((unsigned)cucaracha_index < std::size(cucaracha_data) && cucaracha_subindex >= get_pause_end(cucaracha_data[cucaracha_index])) {
+                ++cucaracha_index;
+                cucaracha_subindex = 0;
+            }
+
+            if ((unsigned)cucaracha_index < std::size(cucaracha_data)) {
+                digital.crouch = cucaracha_subindex < cucaracha_data[cucaracha_index].duration;
+                cucaracha_subindex += ticks;
+            }
         }
     }
 }

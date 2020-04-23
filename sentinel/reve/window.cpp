@@ -12,17 +12,20 @@ namespace reve { namespace window {
 
 HWND*                         ptr_hWnd             = nullptr;
 sentinel::render_device_info* ptr_RenderDeviceInfo = nullptr;
+sentinel::cursor_info*        ptr_CursorInfo       = nullptr;
 
 bool Init()
 {
     return ptr_hWnd
-        && ptr_RenderDeviceInfo;
+        && ptr_RenderDeviceInfo
+        && ptr_CursorInfo;
 }
 
 void Debug()
 {
     SENTINEL_DEBUG_VAR("%p", ptr_hWnd);
     SENTINEL_DEBUG_VAR("%p", ptr_RenderDeviceInfo);
+    SENTINEL_DEBUG_VAR("%p", ptr_CursorInfo);
 }
 
 } } // namespace reve::window
