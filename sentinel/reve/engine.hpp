@@ -24,6 +24,17 @@ using update_netgame_flags_tproc __attribute__((cdecl)) = void(*)();
  */
 using update_objects_tproc __attribute__((cdecl)) = void(*)();
 
+/** \brief Updates the game by a single tick.
+ *
+ * Includes #proc_UpdateNetgameFlags and #proc_UpdateObjects, among others.
+ * \a ticks_remaining is the number of ticks remaining in the cumulative update.
+ *
+ * A call to this function should appropriately increment the tiok counters in the
+ * game time globals structure, to remaing consistent with Halo's behaviour.
+ */
+using update_tick_tproc __attribute__((cdecl))
+    = void(*)(P_IN ticks_long ticks_remaining /* STACK */);
+
 /** \brief Extrapolates the change in position for local player's unit.
  *
  * This function is called on to calculate the camera position between ticks.
@@ -52,6 +63,7 @@ using update_biped_position_tproc __attribute__((cdecl))
 
 extern update_netgame_flags_tproc proc_UpdateNetgameFlags;
 extern update_objects_tproc       proc_UpdateObjects;
+extern update_tick_tproc          proc_UpdateTick;
 
 extern extrapolate_local_unit_delta_tproc    proc_ExtrapolateLocalUnitDelta;
 extern get_biped_update_position_flags_tproc proc_GetBipedUpdatePositionFlags;

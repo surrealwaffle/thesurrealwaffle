@@ -5,7 +5,9 @@
 //          https://www.boost.org/LICENSE_1_0.txt)
 
 #include <sentinel/object.hpp>
+#include <sentinel/structures/globals.hpp>
 
+#include "reve/globals.hpp"
 #include "reve/object.hpp"
 #include "reve/engine.hpp"
 
@@ -33,6 +35,17 @@ SENTINEL_API
 void
 sentinel_Object_UpdateObjects(long ticks)
 {
+/* preferred but unstable:
+    if (ticks < 0L)
+        ticks = 0L;
+
+    for (long ticks_remaining = ticks - 1; ticks != 0; --ticks, --ticks_remaining) {
+        reve::engine::proc_UpdateTick(ticks_remaining);
+        auto& game_time_globals = **sentinel_Globals_globals.game_time_globals;
+        ++game_time_globals.game_ticks;
+        ++game_time_globals.game_ticks2;
+    }
+*/
     for (; ticks > 0; --ticks) {
         reve::engine::proc_UpdateNetgameFlags();
         reve::engine::proc_UpdateObjects();

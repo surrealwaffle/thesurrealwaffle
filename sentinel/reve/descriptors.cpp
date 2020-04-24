@@ -166,6 +166,27 @@ static const descriptor_sequence engine_UpdateMapEntities {
 };
 
 /*
+// Following doesnt work with Chimera as Chimera places a JMP at the CALL
+$ ==>   |.  8D73 FF       LEA ESI,[EBX-1]
+$+3     |.  8BFB          MOV EDI,EBX
+$+5     |>  56            /PUSH ESI
+$+6     |.  E8 27ABFEFF   |CALL Engine::UpdateTick(dwTicksRemaining)
+
+// Need to read in the function prologue instead:CPU Disasm
+$ ==>   /$  51                PUSH ECX
+$+1     |.  53                PUSH EBX
+$+2     |.  68 FFFF0F00       PUSH 0FFFFF
+$+7     |.  68 1F000900       PUSH 9001F
+*/
+static const descriptor_sequence engine_UpdateTick {
+    read_address{ref(engine::proc_UpdateTick)},
+    bytes{0x51,
+          0x53,
+          0x68, 0xFF, 0xFF, 0x0F, 0x00,
+          0x68, 0x1F, 0x00, 0x09, 0x00}
+}; // engine_UpdateTick
+
+/*
 $ ==>     |.  8D5424 10     LEA EDX,[LOCAL.8]
 $+4       |.  52            PUSH EDX
 $+5       |.  E8 49531100   CALL engine::ExtrapolateLocalUnitDelta
@@ -689,6 +710,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(controls_ControlsState),
 
     MAKE_PATCH(engine_UpdateMapEntities),
+    MAKE_PATCH(engine_UpdateTick),
     MAKE_PATCH(engine_ExtrapolateLocalUnitDelta),
     MAKE_PATCH(engine_UpdateBipedPosition),
 
