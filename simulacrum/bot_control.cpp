@@ -228,6 +228,10 @@ void update(sentinel::digital_controls_state& digital,
     }();
 
     digital.primary_trigger = game_context.can_fire_primary_trigger && do_fire;
+
+    auto signum = [] (const float& f) { return f > 0.05f ? 1.0f : f < -0.05f ? -1.0f : 0.0f; };
+    analog.move_forward = signum(analog.move_forward);
+    analog.move_left = signum(analog.move_left);
 }
 
 } } // namespace simulacrum::control
