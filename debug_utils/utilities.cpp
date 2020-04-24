@@ -131,12 +131,15 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
                      [[maybe_unused]] float seconds,
                      [[maybe_unused]] long ticks)
 {
-    if (ticks && tantrum_action != nullptr && tantrum_hits > 0) {
+    if (ticks && tantrum_action != nullptr && tantrum_hits != 0) {
         if ((tantrum_ticks_to_hit -= ticks) <= 0) {
             digital.*tantrum_action = 1;
 
             while ((tantrum_ticks_to_hit += tantrum_period) <= 0) { /* DO NOTHING */ }
-            if (--tantrum_hits <= 0)
+            if (tantrum_hits > 0)
+                --tantrum_hits;
+
+            if (tantrum_hits == 0)
                 sentutil::console::cprintf({1, 0, 1}, "tantrum done");
         } else {
             digital.*tantrum_action = 0;
