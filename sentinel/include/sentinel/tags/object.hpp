@@ -20,7 +20,7 @@ struct object_definition {
     position3d origin_offset;
     real acceleration_scale;
 
-    int32 unknown0;;
+    int32 unknown0;
 
     tag_reference<void> model;
     tag_reference<void> animation_graph;

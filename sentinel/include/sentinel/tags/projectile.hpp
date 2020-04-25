@@ -31,18 +31,22 @@ namespace sentinel { namespace tags {
             real min_timer;
             real max_timer;
             real minimum_velocity;
-            real maximum_range;    ///< When this value is 0 (as in the plasma rifle), there are wonky effects to the projectile lifetime.
+            real maximum_range;    ///< When this value is 0, the projectile never detonates.
+                                   ///< Instead, the projectile is deleted when its speed falls
+                                   ///< below or equal to `physics.final_velocity`.
         } detonation;
 
         struct {
-            real air_gravity_scale;
-            real_bounds air_damage;
+            real        air_gravity_scale; ///< A factor applied to gravity while the projectile is in air.
+            real_bounds air_damage_range;  ///< The distance over which damage for the projectile scales in air.
 
-            real water_gravity_scale;
-            real_bounds water_damage;
+            real water_gravity_scale;       ///< A factor applied to gravity while the projectile is in water.
+            real_bounds water_damage_range; ///< The distance over which damage scales for the projectile in water.
 
-            real initial_velocity; ///< The velocity of the projectile as it is fired, in world units per tick.
-            real final_velocity;
+            real initial_velocity; ///< The speed of the projectile when created, in world units per tick.
+            real final_velocity;   ///< The speed of the projectile is linearly interpolated to this value
+                                   ///< AS SOON AS THE PROJECTILE IS CREATED, over a distance `air_damage_range.max - air_damage_range.min` (if in air).
+                                   ///< This is potentially a bug in Halo's code.
 
             real guided_angular_velocity;
 
