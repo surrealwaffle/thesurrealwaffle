@@ -55,6 +55,11 @@ Actually, given numerical data, this is more accurate to how Halo operates.
 Suppose we have a target is a distance X away and is within range. For what value of t is the target reachable?
     If X < (r_f - r_i), then 1/2 * K * t^2 + v_i * t = X, so t = (-v_i + sqrt((v_i)^2 + 2 * K * X))/K;
     otherwise, if X >= (r_f - r_i), then (r_f - r_i) + v_f * (t - T) = X, or t = T + (X - (r_f - r_i))/v_f.
+
+If we wish to do away with the std::sqrt entirely, we can massage it and perform
+a Taylor expansion of v_i * sqrt(1 + u), where u = (2 * K)/(v_i)^2 * x.
+    We can guarantee |u| < 1 for values of x in [0, (r_f - r_i)).
+    This may be entirely unnecessary, so only implement it as a last resort.
 */
 
 projectile_context::projectile_context(const sentinel::tags::projectile& projectile) noexcept
@@ -68,9 +73,7 @@ projectile_context::projectile_context(const sentinel::tags::projectile& project
     , lerp_time_(2 * lerp_distance_ / (velocity_initial_ + velocity_final_))
     , lerp_constant_((velocity_final_ - velocity_initial_) / lerp_time_)
     , reciprocal_lerp_constant_(1 / lerp_constant_)
-{
-
-}
+{ /* DO NOTHING */ }
 
 sentinel::real projectile_context::max_range() const
 {
