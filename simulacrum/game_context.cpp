@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include <algorithm>
+#include <limits>
 
 #include <sentutil/all.hpp>
 
@@ -20,7 +21,7 @@ short ticks_between_fire = 2;
 
 namespace simulacrum {
 
-game_context_type game_context = {};
+GameContext game_context = {};
 
 /*
 We wish to determine the amount of time it will take for the projectile to reach a target distance, assuming the target is within distance.
@@ -62,36 +63,60 @@ a Taylor expansion of v_i * sqrt(1 + u), where u = (2 * K)/(v_i)^2 * x.
     This may be entirely unnecessary, so only implement it as a last resort.
 */
 
-projectile_context::projectile_context(const sentinel::tags::projectile& projectile) noexcept
+ProjectileContext::ProjectileContext(const sentinel::tags::projectile& projectile) noexcept
     : projectile_(projectile)
-    , detonates_at_final_velocity_(projectile.projectile.detonation.maximum_range <= 0.0f)
+    , destroyed_at_final_velocity_(projectile.projectile.detonation.maximum_range <= 0.0f)
     , velocity_initial_(projectile.projectile.physics.initial_velocity)
     , velocity_final_(projectile.projectile.physics.final_velocity)
-    , square_velocity_initial_(velocity_initial_ * velocity_initial_)
-    , reciprocal_velocity_final_(1 / velocity_final_)
-    , lerp_distance_(projectile.projectile.physics.air_damage_range.length())
-    , lerp_time_(2 * lerp_distance_ / (velocity_initial_ + velocity_final_))
-    , lerp_constant_((velocity_final_ - velocity_initial_) / lerp_time_)
-    , reciprocal_lerp_constant_(1 / lerp_constant_)
+    , detonation_range_(projectile.projectile.detonation.maximum_range)
+    , lerp_distance_(projectile.projectile.physics.air_damage_range.length() > 0.0f
+                        ? projectile.projectile.physics.air_damage_range.length()
+                        : detonation_range_)
+    , lerp_time_(2 * lerp_distance_ / (velocity_initial_ + velocity_final_))  // zero iff lerp_distance_ is zero
+    , lerp_constant_((velocity_final_ - velocity_initial_) / lerp_time_) // +-INF if lerp_time_ is zero, NAN if lerp_time_ is 0 and initial/final velocity are the same
+    , half_lerp_constant_(lerp_constant_ / 2)
 { /* DO NOTHING */ }
 
-sentinel::real projectile_context::max_range() const
+sentinel::real ProjectileContext::max_range() const
 {
-    // TODO: account for inherit_velocity if detonates_at_final_velocity_ is true
-    return detonates_at_final_velocity_ ? lerp_distance_ : projectile().projectile.detonation.maximum_range;
+    // TODO: account for inherited_velocity if detonates_at_final_velocity_ is true
+    return destroyed_at_final_velocity_ ? lerp_distance_ : detonation_range_;
 }
 
-std::optional<sentinel::ticks_long> projectile_context::travel_ticks(const sentinel::real distance) const
+std::optional<sentinel::ticks_long>
+ProjectileContext::travel_ticks(sentinel::real      distance,
+                                std::optional<long> budget_) const
 {
-    if (distance < max_range())
+    if (distance >= max_range())
         return std::nullopt;
-    else if (distance < lerp_distance_)
-        return std::ceil(reciprocal_lerp_constant_ * (-velocity_initial_ + std::sqrt(square_velocity_initial_ + 2 * lerp_constant_ * distance)));
-    else
-        return std::ceil(lerp_time_ + reciprocal_velocity_final_ * (distance - lerp_distance_));
+
+    const long budget = budget_.value_or(std::numeric_limits<long>::max());
+    if (budget <= 0)
+        return std::nullopt;
+
+    long ticks_left = budget;
+    float speed = velocity_initial_;
+
+    // interpolating time
+    while (ticks_left != 0L && speed > velocity_final_ && distance > 0.0f) {
+        --ticks_left;
+        distance -= (speed + half_lerp_constant_); // consistent with Halo, average of old and new velocity
+        speed    += lerp_constant_;
+    }
+
+    if (ticks_left == 0L || (destroyed_at_final_velocity_ && speed <= velocity_final_))
+        return std::nullopt;
+
+    while (ticks_left != 0L && distance > 0.0f) {
+        --ticks_left;
+        distance -= speed;
+    }
+
+    return ticks_left != 0L && distance <= 0.0f ? std::make_optional(budget - ticks_left)
+                                                : std::nullopt;
 }
 
-bool game_context_type::load()
+bool GameContext::load()
 {
     return sentutil::script::install_script_function<"simulacrum_ticks_between_fire">(
         +[] (std::optional<short> v) {
@@ -100,12 +125,16 @@ bool game_context_type::load()
         });
 }
 
-void game_context_type::preupdate(long ticks)
+void GameContext::preupdate(long ticks)
 {
     ticks_since_fired    += ticks;
     ticks_until_can_fire = std::max(ticks_until_can_fire - ticks, 0L);
 
     can_fire_primary_trigger = can_fire_secondary_trigger = can_throw_grenade = false;
+
+    weapon             = std::nullopt;
+    weapon_definition  = std::nullopt;
+    projectile_context = std::nullopt;
 
     local_player = std::nullopt;
     local_unit   = std::nullopt;
@@ -125,8 +154,24 @@ void game_context_type::preupdate(long ticks)
     if (!local_player)
         return;
 
-    if (local_player.value().get().unit)
+    if (local_player.value().get().unit) {
         local_unit = std::ref(*local_player.value().get().unit);
+
+        sentinel::identity<sentinel::weapon> local_unit_weapon = local_player.value().get().unit->get_weapon();
+        if (local_unit_weapon) {
+            sentinel::weapon&       weapon_ref = *local_unit_weapon;
+            sentinel::tags::weapon& weapon_def = get_definition(weapon_ref);
+
+            weapon = std::ref(weapon_ref);
+            weapon_definition = std::ref(weapon_def);
+
+            if (weapon_def.weapon.triggers.count) {
+                sentinel::tags::weapon_definition::trigger& trigger = weapon_def.weapon.triggers[0]; // works for most cases
+                if (trigger.projectile.projectile)
+                    projectile_context = ProjectileContext(*trigger.projectile.projectile);
+            }
+        }
+    }
 
     {   // sort players into ally/enemy partitions
         auto is_ally = [team = local_player.value().get().team]
@@ -145,29 +190,39 @@ void game_context_type::preupdate(long ticks)
                         std::partition(enemies.begin(), enemies.end(), is_alive)};
     }
 
-    if (local_unit) { // sort live allies/enemies based on (square) distance
-        auto get_position = [] (const sentinel::player& p) {
-            const sentinel::unit& unit = *p.unit;
-            return unit.object.parent ? unit.object.parent->object.position
-                                      : unit.object.position;
-        };
-        auto cmp = [get_position, pos = get_position(local_player.value())]
-                   (const sentinel::player& a, const sentinel::player& b)
-                   { return norm2(get_position(a) - pos) < norm2(get_position(b) - pos); };
-        std::sort(live_allies.begin(), live_allies.end(), cmp);
-        std::sort(live_enemies.begin(), live_enemies.end(), cmp);
+    if (local_unit) {
+        {   // sort live allies/enemies based on (square) distance
+            auto get_position = [] (const sentinel::player& p) {
+                const sentinel::unit& unit = *p.unit;
+                return unit.object.parent ? unit.object.parent->object.position
+                                          : unit.object.position;
+            };
+            auto cmp = [get_position, pos = get_position(local_player.value())]
+                       (const sentinel::player& a, const sentinel::player& b)
+                       { return norm2(get_position(a) - pos) < norm2(get_position(b) - pos); };
+            std::sort(live_allies.begin(), live_allies.end(), cmp);
+            std::sort(live_enemies.begin(), live_enemies.end(), cmp);
+        }
     }
 
     can_fire_primary_trigger = static_cast<bool>(local_unit)
                             && ticks_until_can_fire == 0;
 }
 
-void game_context_type::postupdate(const sentinel::digital_controls_state& digital)
+void GameContext::postupdate(const sentinel::digital_controls_state& digital)
 {
     if (digital.primary_trigger && can_fire_primary_trigger) {
         ticks_until_can_fire = std::max(2, (int)ticks_between_fire); ///< \todo Perform a more convoluted calculation
         ticks_since_fired = 0;
     }
+}
+
+std::optional<long>
+GameContext::projectile_travel_ticks(const sentinel::real& distance,
+                                     std::optional<long> budget)
+{
+    return projectile_context ? projectile_context.value().travel_ticks(distance, budget)
+                              : std::nullopt;
 }
 
 } // namespace simulacrum

@@ -11,6 +11,12 @@
 #include <sentinel/types.hpp>
 #include <sentinel/structures/item.hpp>
 
+namespace sentinel::tags {
+
+struct weapon;
+
+} // namespace sentinel::tags
+
 namespace sentinel {
 
 struct weapon_datum {
@@ -55,5 +61,9 @@ struct weapon : item {
     weapon_datum weapon;
 }; static_assert(sizeof(weapon) == 0x340);
 
+inline sentinel::tags::weapon& get_definition(const sentinel::weapon& weapon)
+{
+    return *reinterpret_cast<sentinel::tags::weapon*>(weapon.object.tag->definition);
+}
 
 } // namespace sentinel

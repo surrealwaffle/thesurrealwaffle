@@ -55,6 +55,8 @@ static_assert(offsetof(unit_datum, weapons) == 0x104);
 
 struct unit : object {
     unit_datum unit;
+
+    identity<weapon> get_weapon() const { return unit.weapon_index == -1 ? invalid_identity : unit.weapons[unit.weapon_index]; }
 }; static_assert(sizeof(unit) == 0x4CC);
 
 } // namespace sentinel

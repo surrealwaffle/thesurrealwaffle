@@ -33,23 +33,25 @@ namespace simulacrum {
  * on multiple data points, so this object precomputes and stores these parameters
  * and their reciprocals when necessary.
  */
-class projectile_context {
+class ProjectileContext {
 private:
     std::reference_wrapper<const sentinel::tags::projectile> projectile_;
 
-    bool detonates_at_final_velocity_;
-    sentinel::real velocity_initial_;
-    sentinel::real velocity_final_;
-    sentinel::real square_velocity_initial_;
-    sentinel::real reciprocal_velocity_final_;
+    bool destroyed_at_final_velocity_; ///< If `true`, the projectile is destroyed when its speed falls below #velocity_final_.
+    sentinel::real velocity_initial_; ///< The muzzle velocity.
+    sentinel::real velocity_final_;   ///< The speed at which the projectile stops decelerating.
 
-    sentinel::real lerp_distance_;
-    sentinel::real lerp_time_;
-    sentinel::real lerp_constant_;
-    sentinel::real reciprocal_lerp_constant_;
+    sentinel::real detonation_range_; ///< The distance the projectile travels before detonating.
+                                      ///< If less than or equal to `0`, the projectile is instead destroyed when it reaches #final_velocity_.
+    sentinel::real lerp_distance_; ///< The distance the projectile travels while decelerating from the muzzle.
+    sentinel::real lerp_time_;     ///< The number of ticks that velocity is reduced over from the initial velocity.
+    sentinel::real lerp_constant_; ///< The rate at which velocity is lost per tick.
+    sentinel::real half_lerp_constant_;
 
 public:
-    projectile_context(const sentinel::tags::projectile&) noexcept;
+    /** \brief Stores various parameters for a given projectile definition.
+     */
+    ProjectileContext(const sentinel::tags::projectile& projectile) noexcept;
 
     /** \brief Returns a reference to the projectile definition.
      */
@@ -64,32 +66,31 @@ public:
      *
      * \return The number of ticks, or `std::nullopt` if \a distance is out of range.
      */
-    std::optional<sentinel::ticks_long> travel_ticks(const sentinel::real distance) const;
+    std::optional<sentinel::ticks_long> travel_ticks(sentinel::real distance,
+                                                     std::optional<long> budget = std::nullopt) const;
 };
 
 /** \brief Encapsulates partial game state to be used by the AI and control modules.
  */
-struct game_context_type {
-    using player_reference = std::reference_wrapper<sentinel::player>;
-    using unit_reference   = std::reference_wrapper<sentinel::unit>;
-    using weapon_reference = std::reference_wrapper<sentinel::weapon>;
-    using weapon_definition_reference = std::reference_wrapper<sentinel::tags::weapon>;
-    using projectile_definition_reference = std::reference_wrapper<sentinel::tags::projectile>;
-    using player_reference_container = std::vector<player_reference>;
+struct GameContext {
+    using PlayerReference = std::reference_wrapper<sentinel::player>;
+    using UnitReference   = std::reference_wrapper<sentinel::unit>;
+    using WeaponReference = std::reference_wrapper<sentinel::weapon>;
+    using WeaponDefinitionReference = std::reference_wrapper<sentinel::tags::weapon>;
+    using PlayerReferenceContainer  = std::vector<PlayerReference>;
 
-    std::optional<player_reference> local_player;
-    std::optional<unit_reference>   local_unit;
+    std::optional<PlayerReference> local_player;
+    std::optional<UnitReference>   local_unit;
 
-    std::optional<weapon_reference>                weapon;
-    std::optional<weapon_definition_reference>     weapon_definition;
-    std::optional<projectile_definition_reference> projectile_definition;
-    std::optional<projectile_context>              projectile_context;
+    std::optional<WeaponReference>           weapon;
+    std::optional<WeaponDefinitionReference> weapon_definition;
+    std::optional<ProjectileContext>         projectile_context;
 
-    player_reference_container players;
-    rough_span<player_reference_container::iterator> allies;
-    rough_span<player_reference_container::iterator> enemies;
-    rough_span<player_reference_container::iterator> live_allies;  // sorted on distance from player
-    rough_span<player_reference_container::iterator> live_enemies; // sorted on distance from player
+    PlayerReferenceContainer players;
+    rough_span<PlayerReferenceContainer::iterator> allies;
+    rough_span<PlayerReferenceContainer::iterator> enemies;
+    rough_span<PlayerReferenceContainer::iterator> live_allies;  // sorted on distance from player
+    rough_span<PlayerReferenceContainer::iterator> live_enemies; // sorted on distance from player
 
     long ticks_since_fired;
     long ticks_until_can_fire;
@@ -103,19 +104,12 @@ struct game_context_type {
     void postupdate(const sentinel::digital_controls_state& digital);
 
     static bool load();
+
+    std::optional<long> projectile_travel_ticks(const sentinel::real& distance,
+                                                std::optional<long> budget = std::nullopt);
 };
 
 
-extern game_context_type game_context;
-
-/** \brief Calculates the amount of time (in ticks) required for a \a projectile
- *         to travel \a distance Halo units.
- *
- * \return An optional containing the number of ticks,
- *         or `std::nullopt` if the projectile lacks the range.
- */
-std::optional<long>
-calculate_projectile_travel_ticks(const float& distance,
-                                  sentinel::tags::projectile& projectile);
+extern GameContext game_context;
 
 }

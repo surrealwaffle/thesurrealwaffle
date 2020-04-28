@@ -127,6 +127,14 @@ void update(sentinel::digital_controls_state& digital,
     {
         if (!target_player.unit)
             return std::nullopt;
+
+        {   // compensate for projectile travel distance
+            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.position - camera), 20L);
+            if (!travel_time)
+                return std::nullopt; // target cannot be hit
+            sentutil::simulation::advance(travel_time.value());
+        }
+
         auto opt_marker_result = sentutil::object::get_object_marker(target_player.unit, "body");
         if (!opt_marker_result)
             return std::nullopt;
@@ -206,7 +214,7 @@ void update(sentinel::digital_controls_state& digital,
 
         sentutil::simulation::advance(1);
         const sentinel::real3d camera = sentutil::object::get_unit_camera(local_player.unit);
-        sentutil::simulation::advance(game_context.ticks_until_can_fire + lead_ticks);
+        sentutil::simulation::advance(std::max(game_context.ticks_until_can_fire + lead_ticks - 1, 0L));
 
         {
             auto delta = test_target(camera, target_player);
