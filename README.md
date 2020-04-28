@@ -18,6 +18,15 @@ This repository includes:
 Most of these projects are not directly related to `simulacrum` itself, but are included as part of `sentinel` and `sentutil`.
 When I am sufficiently satisfied with the state of the `sentinel` framework, I will create a separate repository for them.
 
+## Status
+
+I will be slowly refactoring and documenting `sentinel` and `sentutil`.
+Furthermore, I will also be refactoring `simulacrum` at an even slower pace.
+The ambition of the project was to create something that could play multiplayer average or below average.
+However, the current strategy of pathing to the nearest enemy player (by Euclidean distance) and firing on them has proven too effective in regards to that goal.
+The performance extends itself to other gametypes such as Oddball and Race, where the act of simply chasing down ends up yielding score.
+For the reason of meeting that goal, I am hesitant on developing a more complex strategy for the bot to follow.
+
 ## Prerequisites
 
 To build, you will need:
