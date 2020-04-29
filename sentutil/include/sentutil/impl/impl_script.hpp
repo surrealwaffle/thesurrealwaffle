@@ -232,6 +232,20 @@ using sentinel::identity;
 using sentinel::script_node_type;
 using sentinel::script_thread_type;
 
+template<class Result, class Binder>
+struct add_binder {
+    Result result;
+    Binder binder;
+
+    template<class T>
+    constexpr add_binder<decltype(result + binder + std::declval<T>()), Binder>
+    operator+(T&& other) const
+    { return {result + binder + std::forward<T>(other), binder}; }
+};
+
+template<class Result, class Binder>
+add_binder(Result, Binder) -> add_binder<Result, Binder>;
+
 using argsize_type        = sentinel::h_ushort;
 using evaluator_interface = std::function<void(identity<script_thread_type>  thread,
                                                argsize_type                  argc,
@@ -399,8 +413,8 @@ constexpr auto get_default_parameters_help()
             return static_string("<") + traits.name + static_string(">");
     };
 
-    return (static_string("") + ...
-            + (form_param_string(script_value_traits<Args>{}) + static_string(" ")));
+    return (add_binder{static_string(""), static_string(" ")} + ...
+            + form_param_string(script_value_traits<Args>{})).result;
 }
 
 } } } // namespace sentutil::script::impl
