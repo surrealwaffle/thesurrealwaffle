@@ -31,10 +31,12 @@
 				<Option compiler="mingw32" />
 				<Option createDefFile="1" />
 				<Compiler>
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add directory="../sigscan/bin/Release" />
 				</Linker>

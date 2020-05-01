@@ -38,12 +38,14 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-DBUILD_DLL" />
 					<Add directory="../sigscan/include" />
 					<Add directory="../detours/include" />
 				</Compiler>
 				<Linker>
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add option="-static" />
 					<Add library="user32" />
