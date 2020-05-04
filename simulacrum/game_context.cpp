@@ -19,9 +19,17 @@ short ticks_between_fire = 2;
 
 } // namespace (anonymous)
 
+#define SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION
+
 namespace simulacrum {
 
-GameContext game_context = {};
+OrientationContext::OrientationContext(float yaw, float pitch)
+    : yaw(yaw)
+    , pitch(pitch)
+    , cos_yaw(std::cos(yaw))
+    , sin_yaw(std::sin(yaw))
+    , cos_pitch(std::cos(pitch))
+    , sin_pitch(std::sin(pitch)) { }
 
 /*
 We wish to determine the amount of time it will take for the projectile to reach a target distance, assuming the target is within distance.
@@ -75,7 +83,11 @@ ProjectileContext::ProjectileContext(const sentinel::tags::projectile& projectil
     , lerp_time_(2 * lerp_distance_ / (velocity_initial_ + velocity_final_))  // zero iff lerp_distance_ is zero
     , lerp_constant_((velocity_final_ - velocity_initial_) / lerp_time_) // +-INF if lerp_time_ is zero, NAN if lerp_time_ is 0 and initial/final velocity are the same
     , half_lerp_constant_(lerp_constant_ / 2)
-{ /* DO NOTHING */ }
+{
+    does_lerp_ = !(lerp_distance_ <= 0.0f ||
+                   lerp_time_ <= 0.0f ||
+                   velocity_initial_ == velocity_final_);
+}
 
 sentinel::real ProjectileContext::max_range() const
 {
@@ -84,8 +96,9 @@ sentinel::real ProjectileContext::max_range() const
 }
 
 std::optional<sentinel::ticks_long>
-ProjectileContext::travel_ticks(sentinel::real      distance,
-                                std::optional<long> budget_) const
+ProjectileContext::travel_ticks(sentinel::real       distance,
+                                std::optional<float> speed_,
+                                std::optional<long>  budget_) const
 {
     if (distance >= max_range())
         return std::nullopt;
@@ -94,9 +107,32 @@ ProjectileContext::travel_ticks(sentinel::real      distance,
     if (budget <= 0)
         return std::nullopt;
 
-    long ticks_left = budget;
-    float speed = velocity_initial_;
+    float speed = speed_.value_or(velocity_initial_);
 
+#ifdef SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION
+    float ticks = 0.0f;
+    sentutil::console::process_expression("cls");
+    sentutil::console::cprintf("lerp_constant: %2.5f", lerp_constant_);
+    if (does_lerp_ && speed > velocity_final_) {
+        const float lerp_time     = std::max(0.0f, (velocity_final_ - speed)/lerp_constant_);
+        const float lerp_distance = speed * lerp_time + 0.5f * lerp_constant_ * lerp_time * lerp_time;
+        sentutil::console::cprintf("lerp_time: %2.2f", lerp_time);
+        sentutil::console::cprintf("lerp_distance: %2.2f", lerp_distance);
+        if (distance < lerp_distance) {
+            ticks = (-speed + std::sqrt(speed * speed + 2 * lerp_constant_ * distance)) / lerp_constant_;
+        } else {
+            ticks = lerp_time + (distance - lerp_distance) / velocity_final_;
+        }
+    } else {
+        ticks = distance / velocity_initial_;
+    }
+    sentutil::console::cprintf("does_lerp: %d", does_lerp_);
+    sentutil::console::cprintf("ticks: %2.2f", ticks);
+
+    long ticks_truncated = std::ceil(ticks);
+    return ticks_truncated <= budget ? std::make_optional(ticks_truncated) : std::nullopt;
+#else
+    long ticks_left = budget;
     // interpolating time
     while (ticks_left != 0L && speed > velocity_final_ && distance > 0.0f) {
         --ticks_left;
@@ -114,6 +150,7 @@ ProjectileContext::travel_ticks(sentinel::real      distance,
 
     return ticks_left != 0L && distance <= 0.0f ? std::make_optional(budget - ticks_left)
                                                 : std::nullopt;
+#endif // SENTUTIL_USE_CLOSED_FORM_TRAJECTORY
 }
 
 bool GameContext::load()
@@ -138,6 +175,7 @@ void GameContext::preupdate(long ticks)
 
     local_player = std::nullopt;
     local_unit   = std::nullopt;
+    orientation_context = {};
     players.clear();
     allies = {};
     enemies = {};
@@ -207,6 +245,9 @@ void GameContext::preupdate(long ticks)
 
     can_fire_primary_trigger = static_cast<bool>(local_unit)
                             && ticks_until_can_fire == 0;
+
+    orientation_context = OrientationContext(sentutil::globals::local_player_globals->players[0].yaw,
+                                             sentutil::globals::local_player_globals->players[0].pitch);
 }
 
 void GameContext::postupdate(const sentinel::digital_controls_state& digital)
@@ -219,10 +260,15 @@ void GameContext::postupdate(const sentinel::digital_controls_state& digital)
 
 std::optional<long>
 GameContext::projectile_travel_ticks(const sentinel::real& distance,
-                                     std::optional<long> budget)
+                                     std::optional<float>  speed,
+                                     std::optional<long>   budget)
 {
-    return projectile_context ? projectile_context.value().travel_ticks(distance, budget)
+    return projectile_context ? projectile_context.value().travel_ticks(distance, speed, budget)
                               : std::nullopt;
 }
 
+GameContext game_context = {};
+
 } // namespace simulacrum
+
+#undef SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION

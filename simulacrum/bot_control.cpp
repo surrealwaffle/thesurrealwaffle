@@ -10,12 +10,14 @@
 #include <cmath>
 #include <algorithm>
 
+#include "math.hpp"
+
 #include <sentutil/all.hpp>
 
 namespace {
 
 float aiming_fire_threshold = 0.0523599f;
-float aiming_delta_factor  = 20.0f;
+float aiming_delta_factor  = 14.0f;
 short aiming_lookahead_ticks = 0;
 short lead_ticks = 0;
 
@@ -47,7 +49,7 @@ bool load()
                 if (f) aiming_delta_factor = f.value();
                 return aiming_delta_factor;
             },
-            "effects how quickly the bot can turn",
+            "affects how quickly the bot can turn",
             "[<real>]"
         ) &&
         install_script_function<"simulacrum_aiming_lookahead_ticks">(
@@ -120,7 +122,7 @@ void update(sentinel::digital_controls_state& digital,
         analog.move_left = relative_direction[1];
     }();
 
-    auto test_target = [local_player]
+    auto test_target = [&local_player, &unit]
                        (const sentinel::real3d& camera,
                         sentinel::player& target_player)
         -> std::optional<sentinel::real3d> // delta
@@ -128,11 +130,17 @@ void update(sentinel::digital_controls_state& digital,
         if (!target_player.unit)
             return std::nullopt;
 
-        {   // compensate for projectile travel distance
-            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.position - camera), 20L);
+        if (game_context.projectile_context) {   // compensate for projectile travel distance
+            const ProjectileContext& projectile_context = game_context.projectile_context.value();
+            const sentinel::real3d initial_velocity = unit.object.velocity + projectile_context.muzzle_velocity() * unit.unit.aim_forward;
+            const sentinel::real initial_projectile_speed = norm(initial_velocity);
+
+            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.position - camera), initial_projectile_speed, 20L);
             if (!travel_time)
                 return std::nullopt; // target cannot be hit
             sentutil::simulation::advance(travel_time.value());
+        } else {
+            return std::nullopt;
         }
 
         auto opt_marker_result = sentutil::object::get_object_marker(target_player.unit, "body");
@@ -155,58 +163,22 @@ void update(sentinel::digital_controls_state& digital,
         return delta;
     };
 
-    const sentinel::matrix2d horizontal_orient_world_to_camera = [] {
-        const float yaw = sentutil::globals::local_player_globals->players[0].yaw;
-        const auto cos_yaw = std::cos(yaw);
-        const auto sin_yaw = std::sin(yaw);
-
-        const sentinel::matrix2d orient_camera_to_world {
-            cos_yaw, sin_yaw,
-            -sin_yaw, cos_yaw
-        };
-        return transpose(orient_camera_to_world);
-    }();
-
-    const sentinel::matrix2d vertical_orient_world_to_camera = [] {
-        const float pitch = sentutil::globals::local_player_globals->players[0].pitch;
-        const auto cos_pitch = std::cos(pitch);
-        const auto sin_pitch = std::sin(pitch);
-
-        const sentinel::matrix2d orient_camera_to_world {
-            cos_pitch, sin_pitch,
-            -sin_pitch, cos_pitch
-        };
-        return transpose(orient_camera_to_world);
-    }();
-
-    auto aim_to_delta = [seconds,
-                         &analog,
-                         horizontal_orient_world_to_camera,
-                         vertical_orient_world_to_camera]
+    auto aim_to_delta = [seconds, &analog]
                         (const sentinel::real3d& delta) -> bool {
-        sentinel::real2d delta_xy = {delta[0], delta[1]};
-        sentinel::real2d delta_z  = {norm(delta_xy), delta[2]};
+        const auto [dyaw, dpitch] = math::get_turn_angles(game_context.orientation_context, delta);
 
-        delta_xy = horizontal_orient_world_to_camera * delta_xy;
-        delta_z  = vertical_orient_world_to_camera * delta_z;
+        analog.turn_left = seconds * aiming_delta_factor * dyaw;
+        analog.turn_up   = seconds * aiming_delta_factor * dpitch;
 
-        const float yaw_to_target   = std::atan2(delta_xy[1], delta_xy[0]);
-        const float delta_yaw       = seconds * aiming_delta_factor * yaw_to_target;
-
-        const float pitch_to_target = std::atan2(delta_z[1], delta_z[0]);
-        const float delta_pitch     = seconds * aiming_delta_factor * pitch_to_target;
-
-        analog.turn_left = delta_yaw;
-        analog.turn_up   = delta_pitch;
-
-        return std::abs(delta_yaw) < aiming_fire_threshold
-            && std::abs(delta_pitch) < aiming_fire_threshold;
+        return std::abs(analog.turn_left) < aiming_fire_threshold
+            && std::abs(analog.turn_up)   < aiming_fire_threshold;
     };
 
     bool do_fire = false;
     [&do_fire, &analog, &unit, local_player, &test_target, &aim_to_delta] { // aiming
         if (!immediate_goals.target_player
-            || !immediate_goals.target_player.value().get().unit)
+            || !immediate_goals.target_player.value().get().unit
+            || !game_context.projectile_context)
             return;
 
         sentinel::player& target_player = immediate_goals.target_player.value();
@@ -216,18 +188,14 @@ void update(sentinel::digital_controls_state& digital,
         const sentinel::real3d camera = sentutil::object::get_unit_camera(local_player.unit);
         sentutil::simulation::advance(std::max(game_context.ticks_until_can_fire + lead_ticks - 1, 0L));
 
-        {
+        for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i) {
             auto delta = test_target(camera, target_player);
             if (delta) {
-                do_fire = aim_to_delta(delta.value());
-            }
-        }
-
-        for (int i = aiming_lookahead_ticks; i > 0; --i) {
-            auto delta = test_target(camera, target_player);
-            if (delta) {
-                aim_to_delta(delta.value());
-                break;
+                const sentinel::real3d aim_direction
+                    = math::approximate_compensated_aim(game_context.projectile_context.value().muzzle_velocity(),
+                                                        unit.object.velocity,
+                                                        delta.value());
+                do_fire = aim_to_delta(aim_direction);
             }
 
             if (i > 1)

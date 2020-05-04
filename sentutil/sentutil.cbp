@@ -29,10 +29,13 @@
 				<Option compiler="mingw32" />
 				<Option createDefFile="1" />
 				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 				</Compiler>
 				<Linker>
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add directory="../sentinel/bin/Release" />
 				</Linker>

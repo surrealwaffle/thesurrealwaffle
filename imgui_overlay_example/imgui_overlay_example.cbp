@@ -34,11 +34,14 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
-					<Add option="-O2" />
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-flto" />
+					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-DBUILD_DLL" />
 				</Compiler>
 				<Linker>
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add library="gdi32" />
 					<Add library="xinput" />

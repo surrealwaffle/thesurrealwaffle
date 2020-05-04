@@ -32,11 +32,14 @@
 				<Option createDefFile="1" />
 				<Option createStaticLib="1" />
 				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-flto" />
 					<Add option="-O3" />
 					<Add option="-Wall" />
 					<Add option="-DBUILD_DLL" />
 				</Compiler>
 				<Linker>
+					<Add option="-flto" />
 					<Add option="-s" />
 					<Add library="user32" />
 					<Add directory="../sentinel/bin/Release" />
@@ -69,6 +72,8 @@
 		<Unit filename="graph.hpp" />
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
+		<Unit filename="math.cpp" />
+		<Unit filename="math.hpp" />
 		<Unit filename="utility.cpp" />
 		<Unit filename="utility.hpp" />
 		<Extensions>

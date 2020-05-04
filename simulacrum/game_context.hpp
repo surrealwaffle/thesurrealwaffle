@@ -25,6 +25,20 @@
 
 namespace simulacrum {
 
+struct OrientationContext {
+    OrientationContext() = default;
+    OrientationContext(float yaw, float pitch);
+
+    float yaw;
+    float pitch;
+
+    float cos_yaw;
+    float sin_yaw;
+
+    float cos_pitch;
+    float sin_pitch;
+};
+
 /** \brief A utility class that captures lead from projectile travel time.
  *
  * Normally, in calculating a Halo-accurate travel time for a projectile, a number of
@@ -38,6 +52,7 @@ private:
     std::reference_wrapper<const sentinel::tags::projectile> projectile_;
 
     bool destroyed_at_final_velocity_; ///< If `true`, the projectile is destroyed when its speed falls below #velocity_final_.
+    bool does_lerp_;               ///< If `true`, the projectile does not lerp.
     sentinel::real velocity_initial_; ///< The muzzle velocity.
     sentinel::real velocity_final_;   ///< The speed at which the projectile stops decelerating.
 
@@ -61,13 +76,16 @@ public:
      */
     sentinel::real max_range() const;
 
+    sentinel::real muzzle_velocity() const { return velocity_initial_; }
+
     /** \brief Calculates the number of ticks a newly created projectile will take to
      *         travel \a distance.
      *
      * \return The number of ticks, or `std::nullopt` if \a distance is out of range.
      */
-    std::optional<sentinel::ticks_long> travel_ticks(sentinel::real distance,
-                                                     std::optional<long> budget = std::nullopt) const;
+    std::optional<sentinel::ticks_long> travel_ticks(sentinel::real       distance,
+                                                     std::optional<float> speed  = std::nullopt,
+                                                     std::optional<long>  budget = std::nullopt) const;
 };
 
 /** \brief Encapsulates partial game state to be used by the AI and control modules.
@@ -81,6 +99,7 @@ struct GameContext {
 
     std::optional<PlayerReference> local_player;
     std::optional<UnitReference>   local_unit;
+    OrientationContext             orientation_context;
 
     std::optional<WeaponReference>           weapon;
     std::optional<WeaponDefinitionReference> weapon_definition;
@@ -106,7 +125,8 @@ struct GameContext {
     static bool load();
 
     std::optional<long> projectile_travel_ticks(const sentinel::real& distance,
-                                                std::optional<long> budget = std::nullopt);
+                                                std::optional<float>  speed  = std::nullopt,
+                                                std::optional<long>   budget = std::nullopt);
 };
 
 
