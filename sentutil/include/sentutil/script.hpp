@@ -86,7 +86,7 @@ install_script_function(std::function<R(Args...)> f,
         // can reintroduce access into SP:
         //    PC: 0b01011001, CE: 0b00000001
         globals::game_edition == sentinel::GameEdition::combat_evolved
-            ? (unsigned char)0b01001001 : (unsigned char)0b00010001,
+            ? (unsigned char)0b01011001 : (unsigned char)0b00010001,
         0, // param_count, set to 0 since we have our own parser at work
     };
 
