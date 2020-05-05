@@ -111,13 +111,9 @@ ProjectileContext::travel_ticks(sentinel::real       distance,
 
 #ifdef SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION
     float ticks = 0.0f;
-    sentutil::console::process_expression("cls");
-    sentutil::console::cprintf("lerp_constant: %2.5f", lerp_constant_);
     if (does_lerp_ && speed > velocity_final_) {
         const float lerp_time     = std::max(0.0f, (velocity_final_ - speed)/lerp_constant_);
         const float lerp_distance = speed * lerp_time + 0.5f * lerp_constant_ * lerp_time * lerp_time;
-        sentutil::console::cprintf("lerp_time: %2.2f", lerp_time);
-        sentutil::console::cprintf("lerp_distance: %2.2f", lerp_distance);
         if (distance < lerp_distance) {
             ticks = (-speed + std::sqrt(speed * speed + 2 * lerp_constant_ * distance)) / lerp_constant_;
         } else {
@@ -126,8 +122,6 @@ ProjectileContext::travel_ticks(sentinel::real       distance,
     } else {
         ticks = distance / velocity_initial_;
     }
-    sentutil::console::cprintf("does_lerp: %d", does_lerp_);
-    sentutil::console::cprintf("ticks: %2.2f", ticks);
 
     long ticks_truncated = std::ceil(ticks);
     return ticks_truncated <= budget ? std::make_optional(ticks_truncated) : std::nullopt;

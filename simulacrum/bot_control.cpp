@@ -82,15 +82,11 @@ void update(sentinel::digital_controls_state& digital,
     const bool alive = static_cast<bool>(game_context.local_unit);
     [[maybe_unused]] const bool revived = alive && !last_alive;
     last_alive = alive;
-    //digital.flashlight = revived;
     if (!game_context.local_unit)
         return;
 
     sentinel::player& local_player = game_context.local_player.value();
     sentinel::unit&   unit         = game_context.local_unit.value();
-
-    if ((unit.unit.flags & 0x80000) == 0)
-        digital.flashlight = 1;
 
     [&analog, &unit] {   // movement
         auto project = [] (const sentinel::real3d& p) -> sentinel::real2d
