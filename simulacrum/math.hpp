@@ -30,14 +30,13 @@ get_turn_angles(const sentinel::real3d&   source,
                 const sentinel::real3d&   target)
                 { return get_turn_angles(orientation, target - source); }
 
-/** \brief Calculates an aiming vector so that a projectile with a given
- *         \a relative_muzzle_velocity and \a inherited_velocity from the parent
- *         object is in the direction of \a target, from origin.
+/** \brief Calculates the initial velocity of a projectile fired towards
+ *         \a aiming_direction with \a relative_muzzle_velocity from an object
+ *         with velocity \a parent_velocity.
  */
 sentinel::real3d
-approximate_compensated_aim(const sentinel::real    relative_muzzle_velocity,
-                            const sentinel::real3d& inherited_velocity,
-                            const sentinel::real3d& target,
-                            std::optional<int> iteration_depth = std::nullopt);
+get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity,
+                                const sentinel::real3d& aiming_direction,
+                                const sentinel::real3d& parent_velocity);
 
 } } // namespace simulacrum::math

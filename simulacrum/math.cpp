@@ -26,25 +26,11 @@ get_turn_angles(const OrientationContext& orientation,
 }
 
 sentinel::real3d
-approximate_compensated_aim(const sentinel::real    relative_muzzle_velocity,
-                            const sentinel::real3d& inherited_velocity,
-                            const sentinel::real3d& target,
-                            std::optional<int> iteration_depth_)
+get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity,
+                                const sentinel::real3d& aiming_direction,
+                                const sentinel::real3d& parent_velocity)
 {
-    //constexpr float muzzle_frac = 0.75f;
-    const float distance = norm(target);
-    //const float reciprocal_distance = 1 / distance;
-    const sentinel::real3d target_direction = normalized(target);
-
-    sentinel::real3d guess = target_direction;
-
-    for (int i = iteration_depth_.value_or(8); i; --i) {
-        const sentinel::real3d velocity = relative_muzzle_velocity * guess + inherited_velocity;
-        const sentinel::real3d projectile_direction = normalized(velocity);
-        guess = normalized(distance * guess + (target - distance * projectile_direction));
-    }
-
-    return guess;
+    return (relative_muzzle_velocity + dot(aiming_direction, parent_velocity)) * aiming_direction;
 }
 
 } } // namespace simulacrum::math

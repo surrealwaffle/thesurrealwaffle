@@ -132,7 +132,9 @@ void update(sentinel::digital_controls_state& digital,
 
         if (game_context.projectile_context) {   // compensate for projectile travel distance
             const ProjectileContext& projectile_context = game_context.projectile_context.value();
-            const sentinel::real3d initial_velocity = unit.object.velocity + projectile_context.muzzle_velocity() * unit.unit.aim_forward;
+            const sentinel::real3d initial_velocity = math::get_initial_projectile_velocity(projectile_context.muzzle_velocity(),
+                                                                                            unit.unit.aim_forward,
+                                                                                            unit.object.velocity);
             const sentinel::real initial_projectile_speed = norm(initial_velocity);
 
             std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.position - camera), initial_projectile_speed, 20L);
@@ -191,11 +193,7 @@ void update(sentinel::digital_controls_state& digital,
         for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i) {
             auto delta = test_target(camera, target_player);
             if (delta) {
-                const sentinel::real3d aim_direction
-                    = math::approximate_compensated_aim(game_context.projectile_context.value().muzzle_velocity(),
-                                                        unit.object.velocity,
-                                                        delta.value());
-                do_fire = aim_to_delta(aim_direction);
+                do_fire = aim_to_delta(delta.value());
             }
 
             if (i > 1)
