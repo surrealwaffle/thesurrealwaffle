@@ -10,12 +10,17 @@
 
 #include <algorithm>
 #include <limits>
+#include <string>
+#include <string_view>
+#include <utility>
 
 #include <sentutil/all.hpp>
 
 namespace {
 
 short ticks_between_fire = 2;
+
+std::optional<std::wstring> ignore_name_prefix;
 
 } // namespace (anonymous)
 
@@ -153,6 +158,19 @@ bool GameContext::load()
         +[] (std::optional<short> v) {
             if (v) ticks_between_fire = v.value();
             return ticks_between_fire;
+        }) &&
+        sentutil::script::install_script_function<"simulacrum_ignore_name">(
+        +[] (std::optional<std::string_view> name) {
+            if (!name) {
+                ignore_name_prefix = std::nullopt;
+                return;
+            }
+
+            std::wstring wname;
+            wname.reserve(name.value().length());
+            for (char c : name.value())
+                wname.push_back(c);
+            ignore_name_prefix = std::make_optional(std::move(wname));
         });
 }
 
@@ -176,10 +194,15 @@ void GameContext::preupdate(long ticks)
     live_allies = {};
     live_enemies = {};
 
+    auto player_filter = [] (sentinel::player& player) {
+        std::wstring_view name = player.name;
+        return (!ignore_name_prefix || !name.starts_with(ignore_name_prefix.value()));
+    };
+
     for (sentinel::player& player : sentutil::globals::players) {
         if (player.is_local())
             local_player = player;
-        else
+        else if (player_filter(player))
             players.push_back(player);
     }
 

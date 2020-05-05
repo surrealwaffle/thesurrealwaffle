@@ -165,8 +165,13 @@ void update(sentinel::digital_controls_state& digital,
                         (const sentinel::real3d& delta) -> bool {
         const auto [dyaw, dpitch] = math::get_turn_angles(game_context.orientation_context, delta);
 
+        /*
         analog.turn_left = seconds * aiming_delta_factor * dyaw;
         analog.turn_up   = seconds * aiming_delta_factor * dpitch;
+        */
+        const float turn_factor = 1.0f - std::exp(-aiming_delta_factor * seconds);
+        analog.turn_left = turn_factor * dyaw;
+        analog.turn_up   = turn_factor * dpitch;
 
         return std::abs(analog.turn_left) < aiming_fire_threshold
             && std::abs(analog.turn_up)   < aiming_fire_threshold;
