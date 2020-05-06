@@ -57,6 +57,7 @@
 		<Unit filename="include/sentutil/chat.hpp" />
 		<Unit filename="include/sentutil/color.hpp" />
 		<Unit filename="include/sentutil/console.hpp" />
+		<Unit filename="include/sentutil/constants.hpp" />
 		<Unit filename="include/sentutil/controls.hpp" />
 		<Unit filename="include/sentutil/effect.hpp" />
 		<Unit filename="include/sentutil/events.hpp" />

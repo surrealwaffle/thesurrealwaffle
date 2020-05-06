@@ -16,8 +16,9 @@
 
 namespace {
 
-float aiming_fire_threshold = 0.0523599f;
-float aiming_delta_factor  = 14.0f;
+float aiming_fire_threshold  = sentutil::constants::pi / 90;
+float aiming_snap_threshold  = sentutil::constants::pi / 270;
+float aiming_delta_factor    = 10.0f;
 short aiming_lookahead_ticks = 0;
 short lead_ticks = 0;
 
@@ -43,6 +44,13 @@ bool load()
             },
             "the angle (in radians) at which the bot is allowed to fire on targets",
             "[<real>]"
+        ) &&
+        install_script_function<"simulacrum_aiming_snap_threshold">(
+            +[] (std::optional<float> f) {
+                if (f) aiming_snap_threshold = f.value();
+                return aiming_snap_threshold;
+            },
+            "the angle (in radians) at which the bot is permitted to snap on targets"
         ) &&
         install_script_function<"simulacrum_aiming_delta_factor">(
             +[] (std::optional<float> f) {
@@ -165,16 +173,19 @@ void update(sentinel::digital_controls_state& digital,
                         (const sentinel::real3d& delta) -> bool {
         const auto [dyaw, dpitch] = math::get_turn_angles(game_context.orientation_context, delta);
 
-        /*
+        /* // small dt approximation, accurate enough except for large rate factor
         analog.turn_left = seconds * aiming_delta_factor * dyaw;
         analog.turn_up   = seconds * aiming_delta_factor * dpitch;
         */
         const float turn_factor = 1.0f - std::exp(-aiming_delta_factor * seconds);
-        analog.turn_left = turn_factor * dyaw;
-        analog.turn_up   = turn_factor * dpitch;
+        analog.turn_left = std::abs(dyaw)   <= aiming_snap_threshold ? dyaw   : turn_factor * dyaw;
+        analog.turn_up   = std::abs(dpitch) <= aiming_snap_threshold ? dpitch : turn_factor * dpitch;
 
-        return std::abs(analog.turn_left) < aiming_fire_threshold
-            && std::abs(analog.turn_up)   < aiming_fire_threshold;
+        const float yaw_remaining = dyaw - analog.turn_left;
+        const float pitch_remaining = dpitch - analog.turn_up;
+
+        return std::abs(yaw_remaining) < aiming_fire_threshold
+            && std::abs(pitch_remaining)   < aiming_fire_threshold;
     };
 
     bool do_fire = false;

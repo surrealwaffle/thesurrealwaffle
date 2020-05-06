@@ -12,6 +12,7 @@
 #include <sentutil/chat.hpp>
 #include <sentutil/color.hpp>
 #include <sentutil/console.hpp>
+#include <sentutil/constants.hpp>
 #include <sentutil/controls.hpp>
 #include <sentutil/effect.hpp>
 #include <sentutil/events.hpp>

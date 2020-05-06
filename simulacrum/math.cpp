@@ -33,4 +33,29 @@ get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity
     return (relative_muzzle_velocity + dot(aiming_direction, parent_velocity)) * aiming_direction;
 }
 
+bool intersects_segment_sphere(const sentinel::position3d&  segment_begin,
+                               const sentinel::direction3d& segment_direction,
+                               const sentinel::real&        segment_length,
+                               const sentinel::position3d&  sphere_center_,
+                               const sentinel::real&        sphere_radius)
+{
+    const auto square = [] (const auto& v) { return v * v; };
+
+    // Translate coordinates so that segment_begin is the origin
+    const sentinel::position3d sphere_center = sphere_center_ - segment_begin;
+    const auto segment_end = segment_length * segment_direction;
+    /* segment_begin = sentinel::real3d::zero; */
+
+    const auto square_sphere_radius = square(sphere_radius);
+    const auto center_component_length = dot(segment_direction, sphere_center);
+    /*
+    const auto center_component = center_component_length * segment_direction;
+    const auto center_ortho_component = sphere_center - center_component;
+    */
+
+    return (norm2(sphere_center) < square_sphere_radius) ||
+           (norm2(segment_end - sphere_center) < square_sphere_radius) ||
+           (norm2(sphere_center) - square(center_component_length)) < square_sphere_radius;
+}
+
 } } // namespace simulacrum::math

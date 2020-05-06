@@ -59,16 +59,6 @@ rough_span<
             boost::transform_iterator(count_end,   f)};
 }
 
-/** \brief Tests if a line segment intersects the sphere.
- *
- * \return `true` if the line segment intersects the sphere, otherwise `false`.
- */
-bool intersects_segment_sphere(const sentinel::position3d&  segment_begin,
-                               const sentinel::direction3d& segment_direction,
-                               const sentinel::real&        segment_length,
-                               const sentinel::position3d&  sphere_center,
-                               const sentinel::real&        sphere_radius);
-
 bool intersects_coll_pathfinding_spheres(const sentinel::position3d&  segment_begin,
                                          const sentinel::direction3d& segment_direction,
                                          const sentinel::real&        segment_length,

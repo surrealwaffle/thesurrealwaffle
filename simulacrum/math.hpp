@@ -38,5 +38,15 @@ sentinel::real3d
 get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity,
                                 const sentinel::real3d& aiming_direction,
                                 const sentinel::real3d& parent_velocity);
+/** \brief Tests if a line segment intersects the sphere.
+ *
+ * \return `true` if the line segment intersects the sphere, otherwise `false`.
+ */
+bool
+intersects_segment_sphere(const sentinel::position3d&  segment_begin,
+                          const sentinel::direction3d& segment_direction,
+                          const sentinel::real&        segment_length,
+                          const sentinel::position3d&  sphere_center,
+                          const sentinel::real&        sphere_radius);
 
 } } // namespace simulacrum::math
