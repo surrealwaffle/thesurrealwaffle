@@ -1,0 +1,46 @@
+simulacrum_config_aiming_turn_decay_rate 10
+simulacrum_config_aiming_fire_angle 0.069813
+
+simulacrum_config_weapon "!default!"
+simulacrum_config_weapon_firing_interval 5
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\assault rifle\assault rifle"
+simulacrum_config_weapon_firing_interval 3
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\flamethrower\flamethrower"
+simulacrum_config_weapon_firing_interval 4
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\needler\mp_needler"
+simulacrum_config_weapon_firing_interval 1
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\pistol\pistol"
+simulacrum_config_weapon_firing_interval 9
+simulacrum_config_weapon_preferred_zoom_level 0
+
+simulacrum_config_weapon "weapons\plasma pistol\plasma pistol"
+simulacrum_config_weapon_firing_interval 6
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\plasma rifle\plasma rifle"
+simulacrum_config_weapon_firing_interval 6
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\plasma_cannon\plasma_cannon"
+simulacrum_config_weapon_firing_interval 15
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\rocket launcher\rocket launcher"
+simulacrum_config_weapon_firing_interval 15
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\shotgun\shotgun"
+simulacrum_config_weapon_firing_interval 15
+simulacrum_config_weapon_preferred_zoom_level -1
+
+simulacrum_config_weapon "weapons\sniper rifle\sniper rifle"
+simulacrum_config_weapon_firing_interval 15
+simulacrum_config_weapon_preferred_zoom_level 0
