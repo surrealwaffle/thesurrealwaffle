@@ -202,10 +202,8 @@ void GameContext::preupdate(long ticks)
             players.push_back(player);
     }
 
-    if (!local_player) {
-        sentutil::console::cprint(sentutil::color::red, "no local player");
+    if (!local_player)
         return;
-    }
 
     if (local_player.value().get().unit) {
         local_unit = std::ref(*local_player.value().get().unit);
