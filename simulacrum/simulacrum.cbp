@@ -62,6 +62,8 @@
 		</Linker>
 		<Unit filename="bot_ai.cpp" />
 		<Unit filename="bot_ai.hpp" />
+		<Unit filename="bot_config.cpp" />
+		<Unit filename="bot_config.hpp" />
 		<Unit filename="bot_control.cpp" />
 		<Unit filename="bot_control.hpp" />
 		<Unit filename="bsp_interface.cpp" />

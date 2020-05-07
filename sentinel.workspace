@@ -16,13 +16,13 @@
 			<Depends filename="sentinel/sentinel.cbp" />
 			<Depends filename="sentutil/sentutil.cbp" />
 		</Project>
+		<Project filename="debug_utils/debug_utils.cbp" />
 		<Project filename="simulacrum/simulacrum.cbp">
 			<Depends filename="sigscan/sigscan.cbp" />
 			<Depends filename="detours/detours.cbp" />
 			<Depends filename="sentinel/sentinel.cbp" />
 			<Depends filename="sentutil/sentutil.cbp" />
 		</Project>
-		<Project filename="debug_utils/debug_utils.cbp" />
 		<Project filename="imgui_overlay_example/imgui_overlay_example.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
