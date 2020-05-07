@@ -152,19 +152,32 @@ ProjectileContext::travel_ticks(sentinel::real       distance,
 
 bool GameContext::load()
 {
-    return sentutil::script::install_script_function<"simulacrum_ignore_name">(
-        +[] (std::optional<std::string_view> name) {
-            if (!name) {
-                ignore_name_prefix = std::nullopt;
-                return;
-            }
+    using sentutil::script::install_script_function;
+    return
+        install_script_function<"simulacrum_ignore_name">(
+            +[] (std::optional<std::string_view> name) {
+                if (!name) {
+                    ignore_name_prefix = std::nullopt;
+                    return;
+                }
 
-            std::wstring wname;
-            wname.reserve(name.value().length());
-            for (char c : name.value())
-                wname.push_back(c);
-            ignore_name_prefix = std::make_optional(std::move(wname));
-        });
+                std::wstring wname;
+                wname.reserve(name.value().length());
+                for (char c : name.value())
+                    wname.push_back(c);
+                ignore_name_prefix = std::make_optional(std::move(wname));
+            }) &&
+        install_script_function<"simulacrum_held_weapon_tag">(
+            +[] {
+                if (!game_context.weapon_id) {
+                    sentutil::console::cprint("no active weapon");
+                    return;
+                }
+
+                const sentinel::tag_array_element& element = *game_context.weapon_id->object.tag;
+                sentutil::console::cprintf("id: %08X", element.identity.raw);
+                sentutil::console::cprintf("path: \"%s\"", element.name);
+            });
 }
 
 void GameContext::preupdate(long ticks)

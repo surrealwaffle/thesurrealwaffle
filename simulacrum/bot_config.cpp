@@ -116,7 +116,9 @@ bool load()
 
 void reset()
 {
+    const auto old_aim_config = config_state.aim_config;
     config_state = ConfigState();
+    config_state.aim_config = old_aim_config;
 }
 
 } } // namespace simulacrum::config
@@ -135,7 +137,7 @@ struct ConfigFieldDescriptor {
     static constexpr auto field_pointer = MemberPointer;
     using field_type = typename remove_member_pointer<decltype(MemberPointer)>::type;
 
-    const char*           field_usage;
+    const char* field_usage;
 };
 
 bool install_config_field_accessors()
@@ -158,6 +160,7 @@ bool install_config_field_accessors()
         MAKE_CONFIG_FIELD(AimConfig, snap_angle,      "the angle (in radians) to the target on which the bot may snap")
     );
 #undef MAKE_CONFIG_FIELD
+
     static constexpr static_string configure_weapon_prefix("simulacrum_config_weapon_");
     static constexpr static_string configure_aiming_prefix("simulacrum_config_aiming_");
 
