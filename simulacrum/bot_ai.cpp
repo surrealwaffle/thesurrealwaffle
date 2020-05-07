@@ -57,7 +57,7 @@ void update(float seconds, long ticks)
     sentinel::player& nearest_enemy_player = *game_context.live_enemies.begin();
     sentinel::unit&   nearest_enemy_unit   = *nearest_enemy_player.unit;
 
-    auto get_position = [] (const sentinel::unit& unit) -> sentinel::real3d {
+    auto get_position = [] (const sentinel::unit& unit) -> const sentinel::real3d& {
         return unit.object.parent ? unit.object.parent->object.position
                                   : unit.object.position;
     };

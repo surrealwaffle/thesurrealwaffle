@@ -47,11 +47,10 @@ void update(sentinel::digital_controls_state& digital,
     sentinel::player& local_player = game_context.local_player.value();
     sentinel::unit&   unit         = game_context.local_unit.value();
 
-    sentinel::real3d positional_goal_delta { };
-    [&analog, &unit, &positional_goal_delta] {   // movement
-        auto project = [] (const sentinel::real3d& p) -> sentinel::real2d
-                       { return {p[0], p[1]}; };
-        const sentinel::real2d position = project(unit.object.position);
+    sentinel::real3d positional_goal_delta = sentinel::real3d::zero;
+    [&analog, &unit, &positional_goal_delta, unit_id = local_player.unit] {   // movement
+        auto project = [] (const sentinel::real3d& p) -> sentinel::real2d { return {p[0], p[1]}; };
+        const sentinel::real2d position = project(unit.object.parent ? unit.object.parent->object.position : unit.object.position);
 
         sentinel::real2d weighted_delta = sentinel::real2d::zero;
         float weight = 1.0f;
