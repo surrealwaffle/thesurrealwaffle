@@ -61,6 +61,11 @@ struct weapon : item {
     weapon_datum weapon;
 }; static_assert(sizeof(weapon) == 0x340);
 
+inline sentinel::identity<sentinel::tags::weapon> get_definition_id(const sentinel::weapon& weapon)
+{
+    return sentinel::identity<sentinel::tags::weapon>{weapon.object.tag.raw};
+}
+
 inline sentinel::tags::weapon& get_definition(const sentinel::weapon& weapon)
 {
     return *reinterpret_cast<sentinel::tags::weapon*>(weapon.object.tag->definition);

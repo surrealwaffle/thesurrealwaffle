@@ -18,8 +18,6 @@
 
 namespace {
 
-short ticks_between_fire = 2;
-
 std::optional<std::wstring> ignore_name_prefix;
 
 } // namespace (anonymous)
@@ -154,12 +152,7 @@ ProjectileContext::travel_ticks(sentinel::real       distance,
 
 bool GameContext::load()
 {
-    return sentutil::script::install_script_function<"simulacrum_ticks_between_fire">(
-        +[] (std::optional<short> v) {
-            if (v) ticks_between_fire = v.value();
-            return ticks_between_fire;
-        }) &&
-        sentutil::script::install_script_function<"simulacrum_ignore_name">(
+    return sentutil::script::install_script_function<"simulacrum_ignore_name">(
         +[] (std::optional<std::string_view> name) {
             if (!name) {
                 ignore_name_prefix = std::nullopt;
@@ -176,14 +169,17 @@ bool GameContext::load()
 
 void GameContext::preupdate(long ticks)
 {
-    ticks_since_fired    += ticks;
-    ticks_until_can_fire = std::max(ticks_until_can_fire - ticks, 0L);
+    // avoid overflow
+    if ((ticks_since_fired += ticks) > 1000L)
+        ticks_since_fired = 1000L;
 
     can_fire_primary_trigger = can_fire_secondary_trigger = can_throw_grenade = false;
 
+    weapon_id          = sentinel::invalid_identity;
     weapon             = std::nullopt;
     weapon_definition  = std::nullopt;
     projectile_context = std::nullopt;
+    weapon_config      = std::nullopt;
 
     local_player = std::nullopt;
     local_unit   = std::nullopt;
@@ -206,15 +202,17 @@ void GameContext::preupdate(long ticks)
             players.push_back(player);
     }
 
-    if (!local_player)
+    if (!local_player) {
+        sentutil::console::cprint(sentutil::color::red, "no local player");
         return;
+    }
 
     if (local_player.value().get().unit) {
         local_unit = std::ref(*local_player.value().get().unit);
 
-        sentinel::identity<sentinel::weapon> local_unit_weapon = local_player.value().get().unit->get_weapon();
-        if (local_unit_weapon) {
-            sentinel::weapon&       weapon_ref = *local_unit_weapon;
+        weapon_id = local_player.value().get().unit->get_weapon();
+        if (weapon_id) {
+            sentinel::weapon&       weapon_ref = *weapon_id;
             sentinel::tags::weapon& weapon_def = get_definition(weapon_ref);
 
             weapon = std::ref(weapon_ref);
@@ -227,6 +225,7 @@ void GameContext::preupdate(long ticks)
             }
         }
     }
+    weapon_config = std::ref(config::get_config_state().get_weapon_config(weapon_id));
 
     {   // sort players into ally/enemy partitions
         auto is_ally = [team = local_player.value().get().team]
@@ -258,10 +257,11 @@ void GameContext::preupdate(long ticks)
             std::sort(live_allies.begin(), live_allies.end(), cmp);
             std::sort(live_enemies.begin(), live_enemies.end(), cmp);
         }
+    } else { // player is dead
+        ticks_since_fired = 1000L;
     }
 
-    can_fire_primary_trigger = static_cast<bool>(local_unit)
-                            && ticks_until_can_fire == 0;
+    can_fire_primary_trigger = weapon && ticks_since_fired >= weapon_config.value().get().firing_interval;
 
     orientation_context = OrientationContext(sentutil::globals::local_player_globals->players[0].yaw,
                                              sentutil::globals::local_player_globals->players[0].pitch);
@@ -270,8 +270,7 @@ void GameContext::preupdate(long ticks)
 void GameContext::postupdate(const sentinel::digital_controls_state& digital)
 {
     if (digital.primary_trigger && can_fire_primary_trigger) {
-        ticks_until_can_fire = std::max(2, (int)ticks_between_fire); ///< \todo Perform a more convoluted calculation
-        ticks_since_fired = 0;
+        ticks_since_fired = 0L;
     }
 }
 
@@ -282,6 +281,18 @@ GameContext::projectile_travel_ticks(const sentinel::real& distance,
 {
     return projectile_context ? projectile_context.value().travel_ticks(distance, speed, budget)
                               : std::nullopt;
+}
+
+long
+GameContext::get_ticks_until_fire() const
+{
+    return std::max(get_current_weapon_config().firing_interval - ticks_since_fired, 0L);
+}
+
+const config::WeaponConfig&
+GameContext::get_current_weapon_config() const
+{
+    return weapon_config.value_or(config::get_config_state().default_weapon_config);
 }
 
 GameContext game_context = {};

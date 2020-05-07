@@ -6,9 +6,13 @@
 
 #include "main.h"
 
+#include <algorithm>
+#include <string>
+
 #include <sentutil/all.hpp>
 #include "bot_ai.hpp"
 #include "bot_control.hpp"
+#include "bot_config.hpp"
 #include "game_context.hpp"
 
 #ifdef OLD
@@ -328,6 +332,7 @@ namespace {
 
 bool        simulacrum_enabled = false;
 std::string current_cache_name;
+std::string current_map_name;
 
 void load_map_cache(std::string_view cache_name);
 
@@ -350,13 +355,14 @@ bool Load()
         install_load_map_cache_callback(load_map_cache) &&
         install_map_instantiation_callback(instantiate_map) &&
         install_script_function<"simulacrum_reset">(
-            +[] { simulacrum::ai::reset(); simulacrum::control::reset(); },
+            +[] { simulacrum::config::reset(); simulacrum::ai::reset(); simulacrum::control::reset(); },
             "hard reset for the simulacrum AI and control structures",
             "") &&
         install_script_function<"simulacrum_enabled">(
             +[] (bool b) { simulacrum_enabled = b; },
             "enables or disables the simulacrum AI and control"
             "<bool>") &&
+        simulacrum::config::load() &&
         simulacrum::game_context.load() &&
         simulacrum::ai::load() &&
         simulacrum::control::load(); /* &&
@@ -416,10 +422,18 @@ namespace {
 void load_map_cache(std::string_view cache_name)
 {
     current_cache_name = cache_name;
+    current_map_name   = [] {
+        auto first = +sentutil::globals::map_file_header->map_name;
+        auto last = first + sizeof(sentutil::globals::map_file_header->map_name);
+        last = std::find(first, last, '\0');
+        return std::string(first, last);
+    }();
 }
 
 void instantiate_map()
 {
+    simulacrum::config::configure_for_map(current_map_name);
+
     simulacrum::ai::recalculate_navigation(std::string_view(current_cache_name));
     simulacrum::control::reset();
 }

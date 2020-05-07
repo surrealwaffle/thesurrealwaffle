@@ -6,6 +6,7 @@
 
 #include <sentinel/base.hpp>
 
+#include "reve/init.hpp"
 #include "reve/table.hpp"
 #include <sentinel/structures/player.hpp>
 #include <sentinel/structures/table.hpp>
@@ -60,6 +61,17 @@ sentinel_GetLocalPlayerNetworkIndex()
         return -1;
 
     return player->network_index;
+}
+
+SENTINEL_API
+bool
+sentinel_ExecuteConfigFile(const char* lpszFile)
+{
+    if (!sentinel_Globals_tables.script_node_table ||
+        !sentinel_Globals_tables.script_thread_table)
+        return false;
+
+    return lpszFile ? reve::init::proc_ExecuteInitConfig(lpszFile) : false;
 }
 
 #ifdef SENTINEL_BUILD_DLL

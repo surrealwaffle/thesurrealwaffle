@@ -70,6 +70,22 @@ SENTINEL_API
 int
 sentinel_GetLocalPlayerNetworkIndex();
 
+/** \brief Processes the configuration file, like how `init.txt` is processed.
+ *
+ * This procedure may fail if the map is not fully instantiated, as it has
+ * dependencies on some set runtime values.
+ * For instance, this function fails if it is called during after the map cache has
+ * been loaded, but before the map has been instantiated. It is recommended to call
+ * this function during the map instantiation phase, rather than the cache load phase.
+ *
+ * \param[in] lpszFile The path to the config file to open.
+ *
+ * \return `true` on success, or `false` otherwise.
+ */
+SENTINEL_API
+bool
+sentinel_ExecuteConfigFile(const char* lpszFile);
+
 } // extern "C"
 
 namespace sentinel {

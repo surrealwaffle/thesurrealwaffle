@@ -101,38 +101,38 @@ static_assert(offsetof(scenario, decal_palette) == 0x3B4);
 static_assert(offsetof(scenario, structure_bsps) == 0x5A4);
 
 struct scenario::scenery_block_element {
-    int16 type; ///< The palette index of the scenery object..
-    int16 name; ///< The index for the name of the object, or `-1` if it has no name.
-    int16 not_placed_flags;
-    int16 desired_permutation;
-    position3d position; ///< Position of the scenery object.
-    real3d rotation; ///< Rotation of the scenery object, as Euler angles.
+    index_short type; ///< The palette index of the scenery object..
+    index_short name; ///< The index for the name of the object, or `-1` if it has no name.
+    flags_short not_placed_flags;
+    index_short desired_permutation;
+    position3d  position; ///< Position of the scenery object.
+    real3d      rotation; ///< Rotation of the scenery object, as Euler angles.
 
     int32 PAD[10]; // no idea
 }; static_assert(sizeof(scenario::scenery_block_element) == 0x48);
 
 struct scenario::netgame_flags_block_element {
-    enum TYPE : int16 {
-        CTF_FLAG,
-        CTF_VEHICLE,
-        ODDBALL_SPAWN,
-        RACE_TRACK,
-        RACE_VEHICLE,
-        VEGAS_BANK,
-        TELEPORT_FROM,
-        TELEPORT_TO,
-        HILL_FLAG
+    enum Type : enum_short {
+        type_ctf_flag,
+        type_ctf_vehicle,
+        type_oddball_spawn,
+        type_race_track,
+        type_race_vehicle,
+        type_vegas_bank,
+        type_teleport_from,
+        type_teleport_to,
+        type_hill_flag
     };
 
-    position3d position;
-    real  facing;
-    TYPE  type;
-    int16 team_index;
+    position3d  position;
+    real        facing;
+    Type        type;
+    index_short team_index;
     tag_reference<void> weapon_group; ///< Item collection that spawns equipment
 
     int32 PAD[28]; // no idea
 }; static_assert(sizeof(scenario::netgame_flags_block_element) == 0x94);
-static_assert(scenario::netgame_flags_block_element::TELEPORT_FROM == 6);
+static_assert(scenario::netgame_flags_block_element::type_teleport_from == 6);
 
 struct scenario::netgame_equipment_block_element {
     int32 flags;

@@ -230,7 +230,6 @@ static_assert(offsetof(object_marker_result_type, marker_node) == 0x00);
 static_assert(offsetof(object_marker_result_type, marker_transform) == 0x04);
 static_assert(offsetof(object_marker_result_type, world_transform) == 0x38);
 
-#ifndef SENTINEL_SKIP_OFFSET_ASSERTIONS
 static_assert(offsetof(object_prototype, name) == 0x00);
 static_assert(offsetof(object_prototype, type) == 0x04);
 static_assert(offsetof(object_prototype, size) == 0x08);
@@ -238,7 +237,6 @@ static_assert(offsetof(object_prototype, proc_unknown1) == 0x14);
 static_assert(offsetof(object_prototype, proc_update) == 0x34);
 static_assert(offsetof(object_prototype, proc_unknown2) == 0x38);
 static_assert(offsetof(object_prototype, bases) == 0x80);
-#endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 #endif // SENTINEL_SKIP_OFFSET_ASSERTIONS
 
 } // namespace sentinel

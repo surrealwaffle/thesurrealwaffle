@@ -21,6 +21,7 @@
 
 #include <boost/geometry/geometries/box.hpp>
 
+#include "bot_config.hpp"
 #include "utility.hpp"
 
 namespace simulacrum {
@@ -96,14 +97,17 @@ struct GameContext {
     using WeaponReference = std::reference_wrapper<sentinel::weapon>;
     using WeaponDefinitionReference = std::reference_wrapper<sentinel::tags::weapon>;
     using PlayerReferenceContainer  = std::vector<PlayerReference>;
+    using WeaponConfigReference = std::reference_wrapper<const config::WeaponConfig>;
 
     std::optional<PlayerReference> local_player;
     std::optional<UnitReference>   local_unit;
     OrientationContext             orientation_context;
 
+    sentinel::identity<sentinel::weapon>     weapon_id;
     std::optional<WeaponReference>           weapon;
     std::optional<WeaponDefinitionReference> weapon_definition;
     std::optional<ProjectileContext>         projectile_context;
+    std::optional<WeaponConfigReference>     weapon_config;
 
     PlayerReferenceContainer players;
     rough_span<PlayerReferenceContainer::iterator> allies;
@@ -112,7 +116,6 @@ struct GameContext {
     rough_span<PlayerReferenceContainer::iterator> live_enemies; // sorted on distance from player
 
     long ticks_since_fired;
-    long ticks_until_can_fire;
 
     bool can_fire_primary_trigger;
     bool can_fire_secondary_trigger;
@@ -121,6 +124,10 @@ struct GameContext {
     void preupdate(long ticks);
 
     void postupdate(const sentinel::digital_controls_state& digital);
+
+    long get_ticks_until_fire() const;
+
+    const config::WeaponConfig& get_current_weapon_config() const;
 
     static bool load();
 

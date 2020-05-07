@@ -35,24 +35,25 @@ template<> struct identity_traits<tag_array_element>
     { return **sentinel_Globals_globals.tags_array_header; }
 };
 
-#define SENTINEL_MAKE_TAG_ID_TRAITS(type)                                         \
+#define SENTINEL_MAKE_TAG_ID_TRAITS(type, signature_string)                       \
 template<> struct is_tag<type> : std::true_type { };                              \
 template<> struct identity_traits<type> : identity_traits<tag_array_element>      \
 {                                                                                 \
+    static constexpr signature type_signature = make_signature(signature_string); \
     using base_type = tag_array_element;                                          \
     static constexpr auto morph =                                                 \
         [] (auto& x) -> type& { return *reinterpret_cast<type*>(x.definition); }; \
 }
 
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::collision_model);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::effect);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::game_globals);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::item);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::object);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::projectile);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::scenario);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::structure_bsp);
-SENTINEL_MAKE_TAG_ID_TRAITS(tags::weapon);
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::collision_model, "coll");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::effect,          "effe");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::game_globals,    "matg");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::item,            "item");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::object,          "obje");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::projectile,      "proj");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::scenario,        "scnr");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::structure_bsp,   "sbsp");
+SENTINEL_MAKE_TAG_ID_TRAITS(tags::weapon,          "weap");
 
 #undef SENTINEL_MAKE_TAG_ID_TRAITS
 

@@ -18,13 +18,24 @@ namespace reve { namespace init {
 using load_map_cache_callback  = sentinel::function<void(sentinel::h_ccstr name)>;
 using instantiate_map_callback = sentinel::function<void()>;
 
-/** \brief Loads and executes the init file.
+/** \brief Opens and executes the init file.
  *
  * The default init file is `init.txt`.
  * If the `-exec <file>` switch is present, the supplied file is used instead.
  */
 using process_init_config_tproc __attribute__((cdecl))
     = void(*)();
+
+/** \brief Opens and executes each line of the supplied init file.
+ *
+ * This function requires that the script nodes table is available, otherwise it may
+ * exception on a bad memory access.
+ *
+ * \return `1` on success, or
+ *         `0` otherwise.
+ */
+using execute_init_config_tproc __attribute__((cdecl, regparm(1)))
+    = boolean(*)(const char* lpszFile);
 
 /** \brief Processes the command line arguments associated with connecting
  *         the client to a server on startup.
@@ -69,6 +80,7 @@ using instantiate_map_tproc __attribute__((cdecl)) = void(*)();
 extern detours::meta_patch patch_InstantiateMap;
 
 extern process_init_config_tproc  proc_ProcessInitConfig;
+extern execute_init_config_tproc  proc_ExecuteInitConfig;
 extern process_connect_args_tproc proc_ProcessConnectArgs;
 extern load_map_cache_tproc       proc_LoadMapCache;
 extern instantiate_map_tproc      proc_InstantiateMap;

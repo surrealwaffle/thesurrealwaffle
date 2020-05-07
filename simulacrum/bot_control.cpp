@@ -5,6 +5,7 @@
 //          https://www.boost.org/LICENSE_1_0.txt)
 
 #include "bot_control.hpp"
+#include "bot_config.hpp"
 #include "game_context.hpp"
 
 #include <cmath>
@@ -13,16 +14,6 @@
 #include "math.hpp"
 
 #include <sentutil/all.hpp>
-
-namespace {
-
-float aiming_fire_threshold  = sentutil::constants::pi / 90;
-float aiming_snap_threshold  = sentutil::constants::pi / 270;
-float aiming_delta_factor    = 10.0f;
-short aiming_lookahead_ticks = 0;
-short lead_ticks = 0;
-
-} // namepace (anonymous)
 
 namespace simulacrum { namespace control {
 
@@ -36,46 +27,6 @@ void reset()
 bool load()
 {
     using sentutil::script::install_script_function;
-    return
-        install_script_function<"simulacrum_aiming_fire_threshold">(
-            +[] (std::optional<float> f) {
-                if (f) aiming_fire_threshold = f.value();
-                return aiming_fire_threshold;
-            },
-            "the angle (in radians) at which the bot is allowed to fire on targets",
-            "[<real>]"
-        ) &&
-        install_script_function<"simulacrum_aiming_snap_threshold">(
-            +[] (std::optional<float> f) {
-                if (f) aiming_snap_threshold = f.value();
-                return aiming_snap_threshold;
-            },
-            "the angle (in radians) at which the bot is permitted to snap on targets"
-        ) &&
-        install_script_function<"simulacrum_aiming_delta_factor">(
-            +[] (std::optional<float> f) {
-                if (f) aiming_delta_factor = f.value();
-                return aiming_delta_factor;
-            },
-            "affects how quickly the bot can turn",
-            "[<real>]"
-        ) &&
-        install_script_function<"simulacrum_aiming_lookahead_ticks">(
-            +[] (std::optional<short> v) {
-                if (v) aiming_lookahead_ticks = v.value();
-                return aiming_lookahead_ticks;
-            },
-            "determines how many ticks the bot can check for testing visibility",
-            "[<short>]"
-        ) &&
-        install_script_function<"simulacrum_aiming_lead_ticks">(
-            +[] (std::optional<short> v) {
-                if (v) lead_ticks = v.value();
-                return lead_ticks;
-            },
-            "determines how many ticks to lead by",
-            "[<short>]"
-        );
     return true;
 }
 
@@ -141,7 +92,7 @@ void update(sentinel::digital_controls_state& digital,
                                                                                             unit.object.velocity);
             const sentinel::real initial_projectile_speed = norm(initial_velocity);
 
-            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.position - camera), initial_projectile_speed, 20L);
+            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.node_transforms[0].translation - camera), initial_projectile_speed, 20L);
             if (!travel_time)
                 return std::nullopt; // target cannot be hit
             sentutil::simulation::advance(travel_time.value());
@@ -177,15 +128,16 @@ void update(sentinel::digital_controls_state& digital,
         analog.turn_left = seconds * aiming_delta_factor * dyaw;
         analog.turn_up   = seconds * aiming_delta_factor * dpitch;
         */
-        const float turn_factor = 1.0f - std::exp(-aiming_delta_factor * seconds);
-        analog.turn_left = std::abs(dyaw)   <= aiming_snap_threshold ? dyaw   : turn_factor * dyaw;
-        analog.turn_up   = std::abs(dpitch) <= aiming_snap_threshold ? dpitch : turn_factor * dpitch;
+        const config::AimConfig& aiming = config::get_config_state().aim_config;
+        const float turn_factor = 1.0f - std::exp(-aiming.turn_decay_rate * seconds);
+        analog.turn_left = std::abs(dyaw)   <= aiming.snap_angle ? dyaw   : turn_factor * dyaw;
+        analog.turn_up   = std::abs(dpitch) <= aiming.snap_angle ? dpitch : turn_factor * dpitch;
 
         const float yaw_remaining = dyaw - analog.turn_left;
         const float pitch_remaining = dpitch - analog.turn_up;
 
-        return std::abs(yaw_remaining) < aiming_fire_threshold
-            && std::abs(pitch_remaining)   < aiming_fire_threshold;
+        return std::abs(yaw_remaining)   < aiming.fire_angle
+            && std::abs(pitch_remaining) < aiming.fire_angle;
     };
 
     bool do_fire = false;
@@ -198,22 +150,28 @@ void update(sentinel::digital_controls_state& digital,
         sentinel::player& target_player = immediate_goals.target_player.value();
         sentutil::simulation restore_point;
 
-        sentutil::simulation::advance(1);
+        const auto lead_ticks = config::get_config_state().aim_config.lead_amount;
+        sentutil::simulation::advance(1L);
         const sentinel::real3d camera = sentutil::object::get_unit_camera(local_player.unit);
-        sentutil::simulation::advance(std::max(game_context.ticks_until_can_fire + lead_ticks - 1, 0L));
+        sentutil::simulation::advance(game_context.get_ticks_until_fire() + lead_ticks - 1L);
 
-        for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i) {
+        /*for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i)*/ {
             auto delta = test_target(camera, target_player);
             if (delta) {
                 do_fire = aim_to_delta(delta.value());
             }
 
+            /*
             if (i > 1)
                 sentutil::simulation::advance(1);
+            */
         }
     }();
 
     digital.primary_trigger = game_context.can_fire_primary_trigger && do_fire;
+
+    const config::WeaponConfig& weapon_config = game_context.weapon_config.value_or(config::get_config_state().default_weapon_config);
+    digital.zoom = weapon_config.preferred_zoom_level >= 0 && weapon_config.preferred_zoom_level != unit.unit.current_zoom_level;
 
     auto signum = [] (const float& f) { return f > 0.05f ? 1.0f : f < -0.05f ? -1.0f : 0.0f; };
     analog.move_forward = signum(analog.move_forward);

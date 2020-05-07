@@ -14,8 +14,8 @@
 
 namespace sentutil { namespace tag {
 
-sentinel::tag_array_element* get_tag_meta_data(sentinel::signature type,
-                                               const char* name)
+sentinel::tag_array_element*
+get_tag_meta_data(sentinel::signature type, const char* name)
 {
     using sentinel::tag_array_element;
     if (name == nullptr)
@@ -28,6 +28,17 @@ sentinel::tag_array_element* get_tag_meta_data(sentinel::signature type,
                            { return tag.has_type(type) && tag.name == name; });
 
     return it != end ? &*it : nullptr;
+}
+
+sentinel::tag_array_element*
+get_tag_meta_data(const sentinel::identity<sentinel::tag_array_element>& id)
+{
+    const auto index = id.index();
+    if (!id || index < 0 || index >= globals::tags_array->count)
+        return nullptr;
+
+    sentinel::tag_array_element* tag = &globals::tags_array[index];
+    return tag->identity == id ? tag : nullptr;
 }
 
 } } // namespace sentutil::tag

@@ -387,6 +387,19 @@ static const descriptor_sequence init_ProcessStartup {
 }; // init_ProcessStartup
 
 /*
+$ ==>  |.  884424 14     MOV BYTE PTR SS:[LOCAL.29],AL
+$+4    |>  8D4424 0C     LEA EAX,[LOCAL.31]
+$+8    |.  E8 29000000   CALL startup::LoadInit(lpszFil
+$+D    |.  84C0          TEST AL,AL
+*/
+static const descriptor_sequence init_ExecuteInitConfig {
+    bytes{0x88, 0x44, 0x24, 0x14,
+          0x8D, 0x44, 0x24, 0x0C},
+    read_call_rel32{ref(init::proc_ExecuteInitConfig)},
+    bytes{0x84, 0xC0}
+}; // init_ExecuteInitConfig
+
+/*
 $ ==>  |.  8BC5           MOV EAX,EBP
 $+2    |.  F3:A5          REP MOVS DWORD PTR ES:[EDI],DWORD PTR DS:[ESI]
 $+4    |.  E8 7A500700    CALL Init::LoadMapCache
@@ -728,6 +741,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(globals_MapFileHeader),
 
     MAKE_PATCH(init_ProcessStartup),
+    MAKE_PATCH(init_ExecuteInitConfig),
     MAKE_PATCH(init_LoadMapCacheSP),
     MAKE_PATCH(init_LoadMapCacheMP),
     MAKE_PATCH(init_InstantiateMap, ref(init::patch_InstantiateMap)),

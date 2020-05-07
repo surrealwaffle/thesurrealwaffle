@@ -29,6 +29,7 @@ namespace reve { namespace init {
 detours::meta_patch patch_InstantiateMap;
 
 process_init_config_tproc  proc_ProcessInitConfig  = nullptr;
+execute_init_config_tproc  proc_ExecuteInitConfig  = nullptr;
 process_connect_args_tproc proc_ProcessConnectArgs = nullptr;
 load_map_cache_tproc       proc_LoadMapCache       = nullptr;
 instantiate_map_tproc      proc_InstantiateMap     = nullptr;
@@ -52,6 +53,11 @@ bool8 hook_LoadMapCache(P_IN h_ccstr cache_name)
     auto success = proc_LoadMapCache(cache_name);
 
     if (success) {
+        // -------------------------------------------------------
+        // Some resources are set to an unacquired state until
+        // the map is instantiated proper.
+        table::UpdateTable("script node", nullptr);
+
         for (auto& cb : load_map_cache_callbacks)
             cb(cache_name);
     }
@@ -91,6 +97,7 @@ sentinel_handle InstallInstantiateMapCallback(instantiate_map_callback&& callbac
 bool Init()
 {
     return proc_ProcessInitConfig
+        && proc_ExecuteInitConfig
         && proc_ProcessConnectArgs
         && proc_LoadMapCache
         && proc_InstantiateMap && patch_InstantiateMap
@@ -100,6 +107,7 @@ bool Init()
 void Debug()
 {
     SENTINEL_DEBUG_VAR("%p", proc_ProcessInitConfig);
+    SENTINEL_DEBUG_VAR("%p", proc_ExecuteInitConfig);
     SENTINEL_DEBUG_VAR("%p", proc_ProcessConnectArgs);
     SENTINEL_DEBUG_VAR("%p", proc_LoadMapCache);
     SENTINEL_DEBUG_VAR("%p", proc_InstantiateMap);
