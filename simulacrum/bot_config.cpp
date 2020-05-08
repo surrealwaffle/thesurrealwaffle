@@ -111,7 +111,7 @@ bool load()
         set_name(name);
 
     if (const char* index = nullptr; get_command_line("-cindex", index) && index)
-        config_state.persistent.client_index = std::clamp(1, 16, std::atoi(index)) - 1;
+        config_state.persistent.client_index = std::clamp(std::atoi(index), 1, 16) - 1;
 
     if (get_command_line("-obfuscate-name"))
         obfuscate_name();
