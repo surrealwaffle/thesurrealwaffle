@@ -180,6 +180,11 @@ struct map_file_header_type {
     signature foot;
 }; static_assert(sizeof(map_file_header_type) == 0x800);
 
+struct profile_user_name_type {
+    h_wchar tab;
+    h_wchar name[12];
+};
+
 static_assert(offsetof(machine_globals_type, now_count) == 0x00);
 static_assert(offsetof(machine_globals_type, now_millis) == 0x08);
 static_assert(offsetof(machine_globals_type, unknown_counter) == 0x10);

@@ -28,6 +28,7 @@ inline heavy_pointer_wrapper map_globals([] { return sentinel_globals.map_global
 inline heavy_pointer_wrapper runtime_sound_globals([] { return sentinel_globals.runtime_sound_globals; });
 // inline heavy_pointer_wrapper terminal([] { return sentinel_globals.terminal; });
 inline heavy_pointer_wrapper map_file_header([] { return sentinel_globals.map_file_header; });
+inline heavy_pointer_wrapper profile_user_name([] { return sentinel_globals.profile_user_name; });
 
 inline heavy_pointer_wrapper effects([] { return sentinel_tables.effect_table; });
 inline heavy_pointer_wrapper objects([] { return sentinel_tables.object_table; });
@@ -35,6 +36,7 @@ inline heavy_pointer_wrapper players([] { return sentinel_tables.player_table; }
 // inline heavy_pointer_wrapper terminal_output([] { return sentinel_tables.terminal_output_table; });
 inline heavy_pointer_wrapper script_nodes([] { return sentinel_tables.script_node_table; });
 inline heavy_pointer_wrapper script_threads([] { return sentinel_tables.script_thread_table; });
+
 
 inline sentinel::GameEdition& game_edition = sentinel_Globals_Edition;
 

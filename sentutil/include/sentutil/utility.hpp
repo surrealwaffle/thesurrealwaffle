@@ -23,7 +23,7 @@ class heavy_pointer_wrapper
 {
 public:
     using pointer   = std::invoke_result_t<ToPointer&>;
-    using reference = std::remove_pointer_t<pointer>;
+    using reference = std::add_lvalue_reference_t<std::remove_pointer_t<pointer>>;
 
     heavy_pointer_wrapper() = default;
     heavy_pointer_wrapper(ToPointer to_pointer) : to_pointer(to_pointer) { }

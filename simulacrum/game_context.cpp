@@ -18,7 +18,12 @@
 
 namespace {
 
-std::optional<std::wstring> ignore_name_prefix;
+std::optional<std::string> ignore_name_prefix;
+
+/** \brief Returns `true` if \a name matches \a string, with non-representable
+ *         characters ignored from \a name.
+ */
+bool name_matches(const std::wstring_view name, const std::string_view string);
 
 } // namespace (anonymous)
 
@@ -161,11 +166,7 @@ bool GameContext::load()
                     return;
                 }
 
-                std::wstring wname;
-                wname.reserve(name.value().length());
-                for (char c : name.value())
-                    wname.push_back(c);
-                ignore_name_prefix = std::make_optional(std::move(wname));
+                ignore_name_prefix = std::make_optional(std::string(name.value()));
             }) &&
         install_script_function<"simulacrum_held_weapon_tag">(
             +[] {
@@ -204,8 +205,7 @@ void GameContext::preupdate(long ticks)
     live_enemies = {};
 
     auto player_filter = [] (sentinel::player& player) {
-        std::wstring_view name = player.name;
-        return (!ignore_name_prefix || !name.starts_with(ignore_name_prefix.value()));
+        return (!ignore_name_prefix || !name_matches(player.name, ignore_name_prefix.value()));
     };
 
     for (sentinel::player& player : sentutil::globals::players) {
@@ -311,3 +311,25 @@ GameContext game_context = {};
 } // namespace simulacrum
 
 #undef SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION
+
+namespace {
+
+bool name_matches(const std::wstring_view name, const std::string_view str)
+{
+    auto name_first = name.begin();
+    auto name_last  = name.end();
+
+    auto str_first = str.begin();
+    auto str_last  = str.end();
+
+    auto is_representable = [] (const wchar_t wc) { return wc <= std::numeric_limits<char>::max(); };
+
+    for (name_first = std::find_if(name_first, name_last, is_representable);
+         name_first != name_last && str_first != str_last && *name_first == *str_first;
+         name_first = std::find_if(name_first + 1, name_last, is_representable), ++str_first)
+    { /* DO NOTHING */ }
+
+    return str_first == str_last;
+}
+
+} // namespace (anonymous)

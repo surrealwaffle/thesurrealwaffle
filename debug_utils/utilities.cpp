@@ -37,6 +37,8 @@ void controls_filter(sentinel::digital_controls_state& digital,
                      float seconds,
                      long ticks);
 
+float pending_yaw_turn = 0.0f;
+
 } // namespace (anonymous)
 
 namespace halo_debug {
@@ -47,6 +49,7 @@ bool load()
     return install_script_function<"sdbg_time_chat">(time_chat, "measures the time it takes for a string sent over a channel(default=all) to present in chat")
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
         && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
+        && install_script_function<"sdgb_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
         && sentutil::chat::install_chat_filter(chat_filter)
         && sentutil::controls::install_controls_filter(controls_filter);
 }
@@ -131,6 +134,9 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
                      [[maybe_unused]] float seconds,
                      [[maybe_unused]] long ticks)
 {
+    analog.turn_left += pending_yaw_turn;
+    pending_yaw_turn = 0.0f;
+
     if (ticks && tantrum_action != nullptr && tantrum_hits != 0) {
         if ((tantrum_ticks_to_hit -= ticks) <= 0) {
             digital.*tantrum_action = 1;

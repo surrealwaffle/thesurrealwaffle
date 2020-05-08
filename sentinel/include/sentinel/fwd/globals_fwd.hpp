@@ -23,6 +23,7 @@ struct runtime_sound_globals_type;
 struct tags_array_header_type;
 struct terminal_type;
 struct map_file_header_type;
+struct profile_user_name_type;
 
 enum class GameEdition : int32 {
     combat_evolved,
@@ -44,6 +45,7 @@ struct globals_aggregate_type {
     terminal_type*              terminal;
 
     map_file_header_type*       map_file_header;
+    profile_user_name_type*     profile_user_name;
 };
 
 } // namespace sentinel

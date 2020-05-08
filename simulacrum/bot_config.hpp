@@ -30,7 +30,9 @@ struct ConfigState {
     using weapon_tag_id = sentinel::identity<weapon_tag>;
 
     ConfigState()
-        :  aim_config {
+        :  persistent {
+            .client_index = 0
+        }, aim_config {
             .lead_amount     = 0L,
             .turn_decay_rate = 8.0f,
             .fire_angle      = sentutil::constants::pi / 90,
@@ -40,6 +42,10 @@ struct ConfigState {
             .firing_interval      = 5L,
             .preferred_zoom_level = -1
         }, weapon_configs() { }
+
+    struct {
+        int client_index;
+    } persistent;
 
     AimConfig aim_config;
 

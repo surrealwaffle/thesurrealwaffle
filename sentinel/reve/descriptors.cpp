@@ -331,16 +331,18 @@ static const descriptor_sequence globals_RuntimeSoundGlobals {
 }; // globals_RuntimeSoundGlobals
 
 /*
-$ ==>  |> \8B15 C0356E00  MOV EDX,DWORD PTR DS:[CommandLineArgs.argv]
-$+6    |.  52             PUSH EDX
-$+7    |.  8D4424 5C      LEA EAX,[LOCAL.64]
-$+B    |.  50             PUSH EAX
+$+B     |.  33F6          XOR ESI,ESI
+$+D     |.  85C0          TEST EAX,EAX
+$+F     |.  7E 27         JLE SHORT 005427A5
+$+11    |.  8BFF          MOV EDI,EDI
+$+13    |>  A1 901E7200   MOV EAX,DWORD PTR DS:[CommandLineArgs.argv]
 */
 static const descriptor_sequence globals_CommandLineArgs {
-    bytes{0x8B, 0x15}, read_pointer{ref(globals::ptr_CommandLineArgs)},
-    bytes{0x52,
-          0x8D, 0x44, 0x24, 0x5C,
-          0x50}
+    bytes{0x33, 0xF6,
+          0x85, 0xC0,
+          0x7E, 0x27,
+          0x8B, 0xFF,
+          0xA1}, read_pointer{ref(globals::ptr_CommandLineArgs)}
 }; // globals_CommandLineArgs
 
 /*
@@ -364,6 +366,17 @@ static const descriptor_sequence globals_MapFileHeader {
     bytes{0xB9, 0x00, 0x02, 0x00, 0x00,
           0xBF}, read_pointer{ref(globals::ptr_MapFileHeader)}
 }; // globals_MapFileHeader
+
+/*
+$ ==>  |> \B9 FF070000   MOV ECX,7FF
+$+5    |.  BE D82D7100   MOV ESI,OFFSET 00712DD8
+$+A    |.  8D7C24 20     LEA EDI,[LOCAL.2048]
+*/
+static const descriptor_sequence globals_ProfileUserName {
+    bytes{0xB9, 0xFF, 0x07, 0x00, 0x00,
+          0xBE}, read_pointer{ref(globals::ptr_ProfileUserName)},
+    bytes{0x8D, 0x7C, 0x24, 0x20}
+}; // globals_ProfileUserName
 
 /*
 CPU Disasm
@@ -739,6 +752,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(globals_CommandLineArgs),
     MAKE_PATCH(globals_EditionString),
     MAKE_PATCH(globals_MapFileHeader),
+    MAKE_PATCH(globals_ProfileUserName),
 
     MAKE_PATCH(init_ProcessStartup),
     MAKE_PATCH(init_ExecuteInitConfig),

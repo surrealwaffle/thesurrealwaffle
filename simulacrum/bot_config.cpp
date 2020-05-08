@@ -1,7 +1,12 @@
 #include "bot_config.hpp"
 
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <cstddef>
 
+#include <algorithm>
+#include <string>
 #include <tuple>
 #include <type_traits>
 
@@ -12,6 +17,15 @@ namespace {
 bool install_config_field_accessors();
 
 simulacrum::config::ConfigState config_state;
+
+/** \brief Sets the name of the client to be used when connecting to a server.
+ */
+void set_name(const char* name);
+
+/** \brief Modifies the name set by #set_name to be unique given the client index from
+ *         the config_state.
+ */
+void obfuscate_name();
 
 }
 
@@ -90,7 +104,17 @@ bool configure_for_map(const std::string_view map_name)
 
 bool load()
 {
+    using sentutil::globals::get_command_line;
     using sentutil::script::install_script_function;
+
+    if (const char* name = nullptr; get_command_line("-name", name) && name)
+        set_name(name);
+
+    if (const char* index = nullptr; get_command_line("-cindex", index) && index)
+        config_state.persistent.client_index = std::clamp(1, 16, std::atoi(index)) - 1;
+
+    if (get_command_line("-obfuscate-name"))
+        obfuscate_name();
 
     return
         install_script_function<"simulacrum_config_weapon">(
@@ -116,8 +140,10 @@ bool load()
 
 void reset()
 {
+    const auto old_persistent = config_state.persistent;
     const auto old_aim_config = config_state.aim_config;
     config_state = ConfigState();
+    config_state.persistent = old_persistent;
     config_state.aim_config = old_aim_config;
 }
 
@@ -195,6 +221,47 @@ bool install_config_field_accessors()
 
     return install_fields(install_weapon_config_field, weapon_config_fields)
         && install_fields(install_aiming_config_field, aim_config_fields);
+}
+
+void set_name(const char* name)
+{
+    if (!name)
+        return;
+
+    sentinel::profile_user_name_type& alias = *sentutil::globals::profile_user_name;
+    const char* name_end = name + std::min(std::strlen(name), static_cast<std::size_t>(12));
+    auto widen = [] (const char& c) -> wchar_t { return static_cast<wchar_t>(c); };
+
+    std::transform(name, name_end, +alias.name, widen);
+    alias.name[name_end - name] = L'\0';
+}
+
+void obfuscate_name()
+{
+    constexpr wchar_t zws  = L'\x200B'; // zero-width space
+    constexpr wchar_t zwnj = L'\x200C'; // zero-width non-joiner
+    constexpr wchar_t zwj  = L'\x200D'; // zero-width joiner
+
+    std::wstring name = sentutil::globals::profile_user_name->name;
+
+    // Strategy:
+    // A string of length N < 11 has N + 1 insertion points.
+    // We insert ZWJ and ZWNJ into these insertion points, providing us 2*(N+1)+1 variations.
+    // Then, if we need more variations, we pad the end with a ZWS.
+
+    const auto client_index = static_cast<unsigned>(config_state.persistent.client_index);
+    name.reserve(12);
+    while (client_index >= (2 * (name.size() + 1)))
+        name.push_back(zws);
+
+    if (name.size() >= 11) // max name length is 11, cannot insert for variations
+        return;
+
+    const auto insertion_it = name.cbegin() + (client_index <= name.size() ? client_index : client_index - name.size());
+    const wchar_t insertion_character = client_index <= name.size() ? zwnj : zwj;
+    name.insert(insertion_it, insertion_character);
+
+    std::wcscpy(sentutil::globals::profile_user_name->name, name.c_str());
 }
 
 } // namespace (anonymous)
