@@ -48,9 +48,11 @@ void update(sentinel::digital_controls_state& digital,
     sentinel::unit&   unit         = game_context.local_unit.value();
 
     sentinel::real3d positional_goal_delta = sentinel::real3d::zero;
-    [&analog, &unit, &positional_goal_delta, unit_id = local_player.unit] {   // movement
+    [&analog, &unit, &positional_goal_delta] {   // movement
+        const sentinel::unit& controlled_unit = unit.object.parent ? reinterpret_cast<sentinel::unit&>(*unit.object.parent) : unit;
+
         auto project = [] (const sentinel::real3d& p) -> sentinel::real2d { return {p[0], p[1]}; };
-        const sentinel::real2d position = project(unit.object.parent ? unit.object.parent->object.position : unit.object.position);
+        const sentinel::real2d position = project(controlled_unit.object.position);
 
         sentinel::real2d weighted_delta = sentinel::real2d::zero;
         float weight = 1.0f;
@@ -68,8 +70,8 @@ void update(sentinel::digital_controls_state& digital,
         positional_goal_delta[1] = weighted_delta[1];
 
         const sentinel::matrix2d body_to_world = {
-            sentinel::real2d{unit.unit.body_forward[0], unit.unit.body_forward[1]},
-            sentinel::real2d{-unit.unit.body_forward[1], unit.unit.body_forward[0]}
+            sentinel::real2d{controlled_unit.unit.body_forward[0], controlled_unit.unit.body_forward[1]},
+            sentinel::real2d{-controlled_unit.unit.body_forward[1], controlled_unit.unit.body_forward[0]}
         };
 
         const sentinel::matrix2d world_to_body = transpose(body_to_world);
@@ -145,8 +147,7 @@ void update(sentinel::digital_controls_state& digital,
     bool do_fire = false;
     [&do_fire, &analog, &unit, local_player, &test_target, &aim_to_delta, &positional_goal_delta] { // aiming
         if (!immediate_goals.target_player
-            || !immediate_goals.target_player.value().get().unit
-            || !game_context.projectile_context)
+            || !immediate_goals.target_player.value().get().unit)
             return;
 
         sentinel::player& target_player = immediate_goals.target_player.value();
@@ -154,12 +155,13 @@ void update(sentinel::digital_controls_state& digital,
 
         const auto lead_ticks = config::get_config_state().aim_config.lead_amount;
         sentutil::simulation::advance(1L);
-        const sentinel::real3d camera = sentutil::object::get_unit_camera(local_player.unit);
+        const sentinel::real3d camera = unit.object.parent ? sentutil::globals::camera_globals->position
+                                                           : sentutil::object::get_unit_camera(local_player.unit);
         sentutil::simulation::advance(game_context.get_ticks_until_fire() + lead_ticks - 1L);
 
         /*for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i)*/ {
-            auto delta = test_target(camera, target_player);
-            if (delta) {
+            std::optional<sentinel::real3d> delta = std::nullopt;
+            if (game_context.projectile_context && (delta = test_target(camera, target_player))) {
                 do_fire = aim_to_delta(delta.value());
             } else {
                 aim_to_delta(positional_goal_delta);

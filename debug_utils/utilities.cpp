@@ -49,7 +49,7 @@ bool load()
     return install_script_function<"sdbg_time_chat">(time_chat, "measures the time it takes for a string sent over a channel(default=all) to present in chat")
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
         && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
-        && install_script_function<"sdgb_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
+        && install_script_function<"sdbg_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
         && sentutil::chat::install_chat_filter(chat_filter)
         && sentutil::controls::install_controls_filter(controls_filter);
 }
