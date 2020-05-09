@@ -2,6 +2,8 @@
 
 #include <cmath>
 
+#include <algorithm>
+
 namespace simulacrum { namespace math {
 
 std::pair<float, float>
@@ -56,6 +58,16 @@ bool intersects_segment_sphere(const sentinel::position3d&  segment_begin,
     return (norm2(sphere_center) < square_sphere_radius) ||
            (norm2(segment_end - sphere_center) < square_sphere_radius) ||
            (norm2(sphere_center) - square(center_component_length)) < square_sphere_radius;
+}
+
+float
+compute_decaying_differential(float x, float dt, float decay_rate, float constant_rate)
+{
+    const float lbound = std::min(0.0f, x);
+    const float ubound = std::max(0.0f, x);
+
+    const float dx = -decay_rate * x * dt - constant_rate * dt;
+    return std::clamp(x + dx, lbound, ubound) - x;
 }
 
 } } // namespace simulacrum::math

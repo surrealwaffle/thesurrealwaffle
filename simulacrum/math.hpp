@@ -49,4 +49,17 @@ intersects_segment_sphere(const sentinel::position3d&  segment_begin,
                           const sentinel::position3d&  sphere_center,
                           const sentinel::real&        sphere_radius);
 
+/** \brief Computes `x(t + dt) - x(t)` where `x` is determined by the differential
+ *         equation `dx = -r * x * dt - k * dt` with the constraint that `x(t + dt)`
+ *         is bounded by `0` and `x(t)`, for a differential \a dt.
+ *
+ * \param[in] x          The value of `x(t)`.
+ * \param[in] dt         The time differential.
+ * \param[in] decay_rate The constant `r` in the above differential equation.
+ * \param[in] time_rate  The constant `k` in the above differential equation.
+ * \return The value of `x(t + dt)` according to the constraints.
+ */
+float
+compute_decaying_differential(float x, float dt, float decay_rate, float constant_rate);
+
 } } // namespace simulacrum::math

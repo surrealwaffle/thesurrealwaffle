@@ -180,10 +180,11 @@ bool install_config_field_accessors()
     );
 
     static constexpr std::tuple aim_config_fields = std::make_tuple(
-        MAKE_CONFIG_FIELD(AimConfig, lead_amount,     "the number of ticks to lead targets by"),
-        MAKE_CONFIG_FIELD(AimConfig, turn_decay_rate, "determines how fast the bot turns"),
-        MAKE_CONFIG_FIELD(AimConfig, fire_angle,      "the angle (in radians) to the target on which the bot may fire"),
-        MAKE_CONFIG_FIELD(AimConfig, snap_angle,      "the angle (in radians) to the target on which the bot may snap")
+        MAKE_CONFIG_FIELD(AimConfig, lead_amount,        "the number of ticks to lead targets by"),
+        MAKE_CONFIG_FIELD(AimConfig, turn_decay_rate,    "determines how fast the bot turns"),
+        MAKE_CONFIG_FIELD(AimConfig, turn_constant_rate, "additional turn rate in radians per second"),
+        MAKE_CONFIG_FIELD(AimConfig, fire_angle,         "the angle (in radians) to the target on which the bot may fire"),
+        MAKE_CONFIG_FIELD(AimConfig, snap_angle,         "the angle (in radians) to the target on which the bot may snap")
     );
 #undef MAKE_CONFIG_FIELD
 

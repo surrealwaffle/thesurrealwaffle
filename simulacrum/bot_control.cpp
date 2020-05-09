@@ -126,18 +126,20 @@ void update(sentinel::digital_controls_state& digital,
 
     auto aim_to_delta = [seconds, &analog]
                         (const sentinel::real3d& delta) -> bool {
+        const config::AimConfig& aiming = config::get_config_state().aim_config;
+        auto turn_amount = [&seconds, &aiming] (const float angle) {
+            return -math::compute_decaying_differential(
+                angle,
+                seconds,
+                aiming.turn_decay_rate,
+                aiming.turn_constant_rate);
+        };
         const auto [dyaw, dpitch] = math::get_turn_angles(game_context.orientation_context, delta);
 
-        /* // small dt approximation, accurate enough except for large rate factor
-        analog.turn_left = seconds * aiming_delta_factor * dyaw;
-        analog.turn_up   = seconds * aiming_delta_factor * dpitch;
-        */
-        const config::AimConfig& aiming = config::get_config_state().aim_config;
-        const float turn_factor = 1.0f - std::exp(-aiming.turn_decay_rate * seconds);
-        analog.turn_left = std::abs(dyaw)   <= aiming.snap_angle ? dyaw   : turn_factor * dyaw;
-        analog.turn_up   = std::abs(dpitch) <= aiming.snap_angle ? dpitch : turn_factor * dpitch;
+        analog.turn_left = std::abs(dyaw)   <= aiming.snap_angle ? dyaw   : turn_amount(dyaw);
+        analog.turn_up   = std::abs(dpitch) <= aiming.snap_angle ? dpitch : turn_amount(dpitch);
 
-        const float yaw_remaining = dyaw - analog.turn_left;
+        const float yaw_remaining   = dyaw - analog.turn_left;
         const float pitch_remaining = dpitch - analog.turn_up;
 
         return std::abs(yaw_remaining)   < aiming.fire_angle

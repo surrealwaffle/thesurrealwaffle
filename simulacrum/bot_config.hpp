@@ -17,9 +17,11 @@ struct WeaponConfig {
 
 struct AimConfig {
     long  lead_amount; ///< The amount of ticks to lead targets by.
-    float turn_decay_rate; ///< The constant factor applied to time in the turning model.
-                           ///< The turn amount is modeled on exponential decay in time,
-                           ///< i.e. `dtheta/dt = -turn_decay_rate * theta`.
+    float turn_decay_rate;    ///< The factor applied to the decaying part of the
+                              ///< turning model differential equation.
+    float turn_constant_rate; ///< The number of radians per second permitted by
+                              ///< the turning model in excess of the decaying part.
+
 
     float fire_angle; ///< The angle to the target on which the bot may fire.
     float snap_angle; ///< The angle to the target on which the bot may snap.
@@ -33,10 +35,11 @@ struct ConfigState {
         :  persistent {
             .client_index = 0
         }, aim_config {
-            .lead_amount     = 0L,
-            .turn_decay_rate = 8.0f,
-            .fire_angle      = sentutil::constants::pi / 90,
-            .snap_angle      = sentutil::constants::pi / 270
+            .lead_amount        = 0L,
+            .turn_decay_rate    = 8.0f,
+            .turn_constant_rate = sentutil::constants::pi / 180,
+            .fire_angle         = sentutil::constants::pi / 90,
+            .snap_angle         = sentutil::constants::pi / 270
         }, selected_weapon(std::nullopt)
         ,  default_weapon_config{
             .firing_interval      = 5L,
