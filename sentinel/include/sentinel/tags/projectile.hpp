@@ -67,6 +67,12 @@ namespace sentinel { namespace tags {
 
     struct projectile : object {
         projectile_definition projectile;
+
+        constexpr bool does_lerp() const noexcept
+        {
+            return projectile.physics.air_damage_range.length() > 0.0f
+                && projectile.physics.initial_velocity != projectile.physics.final_velocity;
+        }
     }; static_assert(sizeof(projectile) == 0x24C);
 
 } } // namespace sentinel::tags

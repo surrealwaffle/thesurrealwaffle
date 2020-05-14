@@ -1,8 +1,10 @@
 #include "math.hpp"
+#include "game_context.hpp"
 
 #include <cmath>
 
 #include <algorithm>
+#include <sentutil/console.hpp>
 
 namespace simulacrum { namespace math {
 
@@ -28,11 +30,21 @@ get_turn_angles(const OrientationContext& orientation,
 }
 
 sentinel::real3d
-get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity,
-                                const sentinel::real3d& aiming_direction,
-                                const sentinel::real3d& parent_velocity)
+initial_projectile_velocity(const sentinel::real    muzzle_speed,
+                            const sentinel::real3d& aiming_direction,
+                            const sentinel::real3d& parent_velocity)
 {
-    return (relative_muzzle_velocity + dot(aiming_direction, parent_velocity)) * aiming_direction;
+    // This is an approximation:
+    // Initial projectile direction is determined by the following expression:
+    //    normalized(parent_velocity + muzzle_speed * aiming_direction).
+    // Then the initial projectile velocity is determined by:
+    //    (muzzle_speed + dot(aiming_direction, parent_velocity)) * initial_direction
+    // However, parent velocity is generally small enough laterally that we can approximate
+    // the initial projectile direction with the aiming direction.
+    // Ideally, an 'accurate model' option should later be provided for simulacrum that accounts for this.
+    // This model would need to modulate the aiming direction so that the initial
+    // projectile direction is sufficiently correct and on target.
+    return (muzzle_speed + dot(aiming_direction, parent_velocity)) * aiming_direction;
 }
 
 bool intersects_segment_sphere(const sentinel::position3d&  segment_begin,
@@ -61,13 +73,64 @@ bool intersects_segment_sphere(const sentinel::position3d&  segment_begin,
 }
 
 float
-compute_decaying_differential(float x, float dt, float decay_rate, float constant_rate)
+decaying_differential(const float x,
+                      const float dt,
+                      const float decay_rate,
+                      const float constant_rate)
 {
     const float lbound = std::min(0.0f, x);
     const float ubound = std::max(0.0f, x);
 
     const float dx = -decay_rate * x * dt - constant_rate * dt;
     return std::clamp(x + dx, lbound, ubound) - x;
+}
+
+std::pair<float, float>
+projectile_interpolation_time(const ProjectileContext& projectile,
+                              const float initial_speed)
+{
+    // Per tick, a projectile's speed is reduced by a constant amount if its speed
+    // is greater than the projectile's final velocity value in the tag.
+    // This value, known as the lerp constant, is calculated by:
+    //  `(v_f + v_i)/2 * (v_f - v_i)/(r_f - r_i)`,
+    // where v_f, v_i describe the final and initial projectile speed and r_f, r_i
+    // describe the (air/water) damage range values from the tag.
+    // It is therefore possible and likely that a projectile will fall below its
+    // final velocity, as the projectile speed is not bounded below by v_f.
+    // If `v_f == v_i` or `r_f == r_i` then the projectile does not lerp.
+
+    if (!projectile.does_lerp || initial_speed <= projectile.speed_final)
+        return {0L, initial_speed};
+
+    const float ticks = std::ceil((projectile.speed_final - initial_speed) * projectile.reciprocal_lerp_constant);
+    return {ticks, initial_speed + ticks * projectile.lerp_constant};
+}
+
+float
+projectile_interpolation_distance(const ProjectileContext& projectile,
+                                  const float initial_speed)
+{
+    const auto [ticks, final_speed] = projectile_interpolation_time(projectile, initial_speed);
+    return ticks * initial_speed + (ticks * ticks) * projectile.half_lerp_constant;
+}
+
+std::pair<bool, float>
+projectile_travel_time(const ProjectileContext& projectile,
+                       const float initial_speed,
+                       const float distance)
+{
+    if (distance >= projectile.max_range)
+        return {false, 0.0f};
+
+    const auto squared = [] (const auto& x) { return x * x; };
+    const auto [interpolation_time, final_speed] = projectile_interpolation_time(projectile, initial_speed);
+    const float interpolation_distance = projectile_interpolation_distance(projectile, initial_speed);
+
+    const float travel_time = distance < interpolation_distance
+        ? (std::sqrt(squared(initial_speed) + 2 * projectile.lerp_constant * distance) - initial_speed) * projectile.reciprocal_lerp_constant
+        : interpolation_time + (distance - interpolation_distance) / final_speed;
+
+    return {true, std::ceil(travel_time)};
 }
 
 } } // namespace simulacrum::math

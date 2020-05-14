@@ -61,16 +61,16 @@ struct real_bounds {
     real min;
     real max;
 
-    auto length() const noexcept { return max - min; }
-    auto sum()    const noexcept { return min + max; }
+    constexpr auto length() const noexcept { return max - min; }
+    constexpr auto sum()    const noexcept { return min + max; }
 };
 
 struct short_bounds {
     int16 min;
     int16 max;
 
-    auto length() const noexcept { return max - min; }
-    auto sum()    const noexcept { return min + max; }
+    constexpr auto length() const noexcept { return max - min; }
+    constexpr auto sum()    const noexcept { return min + max; }
 };
 
 inline constexpr real

@@ -91,15 +91,19 @@ void update(sentinel::digital_controls_state& digital,
 
         if (game_context.projectile_context) {   // compensate for projectile travel distance
             const ProjectileContext& projectile_context = game_context.projectile_context.value();
-            const sentinel::real3d initial_velocity = math::get_initial_projectile_velocity(projectile_context.muzzle_velocity(),
-                                                                                            unit.unit.aim_forward,
-                                                                                            unit.object.velocity);
+            const sentinel::real3d initial_velocity = math::initial_projectile_velocity(projectile_context.speed_muzzle,
+                                                                                        unit.unit.aim_forward,
+                                                                                        unit.object.velocity);
             const sentinel::real initial_projectile_speed = norm(initial_velocity);
 
-            std::optional travel_time = game_context.projectile_travel_ticks(norm(target_player.unit->object.node_transforms[0].translation - camera), initial_projectile_speed, 20L);
-            if (!travel_time)
-                return std::nullopt; // target cannot be hit
-            sentutil::simulation::advance(travel_time.value());
+            const auto [in_range, travel_time] = math::projectile_travel_time(
+                game_context.projectile_context.value(),
+                initial_projectile_speed,
+                norm(target_player.unit->object.node_transforms[0].translation - camera));
+
+            if (!in_range || travel_time > 20.0f)
+                return std::nullopt; // target cannot be hit/predicted within budget
+            sentutil::simulation::advance(static_cast<long>(travel_time));
         } else {
             return std::nullopt;
         }
@@ -128,11 +132,10 @@ void update(sentinel::digital_controls_state& digital,
                         (const sentinel::real3d& delta) -> bool {
         const config::AimConfig& aiming = config::get_config_state().aim_config;
         auto turn_amount = [&seconds, &aiming] (const float angle) {
-            return -math::compute_decaying_differential(
-                angle,
-                seconds,
-                aiming.turn_decay_rate,
-                aiming.turn_constant_rate);
+            return -math::decaying_differential(angle,
+                                                seconds,
+                                                aiming.turn_decay_rate,
+                                                aiming.turn_constant_rate);
         };
         const auto [dyaw, dpitch] = math::get_turn_angles(game_context.orientation_context, delta);
 

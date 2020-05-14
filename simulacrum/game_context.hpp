@@ -48,45 +48,28 @@ struct OrientationContext {
  * on multiple data points, so this object precomputes and stores these parameters
  * and their reciprocals when necessary.
  */
-class ProjectileContext {
-private:
-    std::reference_wrapper<const sentinel::tags::projectile> projectile_;
+struct ProjectileContext {
+    std::reference_wrapper<const sentinel::tags::projectile> definition;
 
-    bool destroyed_at_final_velocity_; ///< If `true`, the projectile is destroyed when its speed falls below #velocity_final_.
-    bool does_lerp_;               ///< If `true`, the projectile does not lerp.
-    sentinel::real velocity_initial_; ///< The muzzle velocity.
-    sentinel::real velocity_final_;   ///< The speed at which the projectile stops decelerating.
+    bool destroyed_at_final_speed;
+    bool does_lerp;
 
-    sentinel::real detonation_range_; ///< The distance the projectile travels before detonating.
-                                      ///< If less than or equal to `0`, the projectile is instead destroyed when it reaches #final_velocity_.
-    sentinel::real lerp_distance_; ///< The distance the projectile travels while decelerating from the muzzle.
-    sentinel::real lerp_time_;     ///< The number of ticks that velocity is reduced over from the initial velocity.
-    sentinel::real lerp_constant_; ///< The rate at which velocity is lost per tick.
-    sentinel::real half_lerp_constant_;
+    sentinel::real        speed_muzzle;
+    sentinel::real        speed_final;
+    sentinel::real_bounds damage_range;
+    sentinel::real        detonation_range;
+    sentinel::real        max_range;
 
-public:
+    sentinel::real lerp_distance; ///< The distance the projectile lerps over if fired from rest.
+    sentinel::real lerp_time;     ///< The time the projectile lerps over if fired from rest.
+    sentinel::real lerp_constant; ///< The rate per tick at which speed is reduced if
+                                  ///< the projectile's speed is greater than #speed_final.
+    sentinel::real reciprocal_lerp_constant; ///< The multiplicative inverse of #lerp_constant.
+    sentinel::real half_lerp_constant; ///< Half of #lerp_constant.
+
     /** \brief Stores various parameters for a given projectile definition.
      */
     ProjectileContext(const sentinel::tags::projectile& projectile) noexcept;
-
-    /** \brief Returns a reference to the projectile definition.
-     */
-    const sentinel::tags::projectile& projectile() const noexcept { return projectile_; }
-
-    /** \brief Returns the effective maximum range of the projectile.
-     */
-    sentinel::real max_range() const;
-
-    sentinel::real muzzle_velocity() const { return velocity_initial_; }
-
-    /** \brief Calculates the number of ticks a newly created projectile will take to
-     *         travel \a distance.
-     *
-     * \return The number of ticks, or `std::nullopt` if \a distance is out of range.
-     */
-    std::optional<sentinel::ticks_long> travel_ticks(sentinel::real       distance,
-                                                     std::optional<float> speed  = std::nullopt,
-                                                     std::optional<long>  budget = std::nullopt) const;
 };
 
 /** \brief Encapsulates partial game state to be used by the AI and control modules.
@@ -130,10 +113,6 @@ struct GameContext {
     const config::WeaponConfig& get_current_weapon_config() const;
 
     static bool load();
-
-    std::optional<long> projectile_travel_ticks(const sentinel::real& distance,
-                                                std::optional<float>  speed  = std::nullopt,
-                                                std::optional<long>   budget = std::nullopt);
 };
 
 

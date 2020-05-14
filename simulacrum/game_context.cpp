@@ -80,80 +80,20 @@ a Taylor expansion of v_i * sqrt(1 + u), where u = (2 * K)/(v_i)^2 * x.
 */
 
 ProjectileContext::ProjectileContext(const sentinel::tags::projectile& projectile) noexcept
-    : projectile_(projectile)
-    , destroyed_at_final_velocity_(projectile.projectile.detonation.maximum_range <= 0.0f)
-    , velocity_initial_(projectile.projectile.physics.initial_velocity)
-    , velocity_final_(projectile.projectile.physics.final_velocity)
-    , detonation_range_(projectile.projectile.detonation.maximum_range)
-    , lerp_distance_(projectile.projectile.physics.air_damage_range.length() > 0.0f
-                        ? projectile.projectile.physics.air_damage_range.length()
-                        : detonation_range_)
-    , lerp_time_(2 * lerp_distance_ / (velocity_initial_ + velocity_final_))  // zero iff lerp_distance_ is zero
-    , lerp_constant_((velocity_final_ - velocity_initial_) / lerp_time_) // +-INF if lerp_time_ is zero, NAN if lerp_time_ is 0 and initial/final velocity are the same
-    , half_lerp_constant_(lerp_constant_ / 2)
-{
-    does_lerp_ = !(lerp_distance_ <= 0.0f ||
-                   lerp_time_ <= 0.0f ||
-                   velocity_initial_ == velocity_final_);
-}
-
-sentinel::real ProjectileContext::max_range() const
-{
-    // TODO: account for inherited_velocity if detonates_at_final_velocity_ is true
-    return destroyed_at_final_velocity_ ? lerp_distance_ : detonation_range_;
-}
-
-std::optional<sentinel::ticks_long>
-ProjectileContext::travel_ticks(sentinel::real       distance,
-                                std::optional<float> speed_,
-                                std::optional<long>  budget_) const
-{
-    if (distance >= max_range())
-        return std::nullopt;
-
-    const long budget = budget_.value_or(std::numeric_limits<long>::max());
-    if (budget <= 0)
-        return std::nullopt;
-
-    float speed = speed_.value_or(velocity_initial_);
-
-#ifdef SIMULACRUM_USE_CLOSED_FORM_TRAVEL_COMPUTATION
-    float ticks = 0.0f;
-    if (does_lerp_ && speed > velocity_final_) {
-        const float lerp_time     = std::max(0.0f, (velocity_final_ - speed)/lerp_constant_);
-        const float lerp_distance = speed * lerp_time + 0.5f * lerp_constant_ * lerp_time * lerp_time;
-        if (distance < lerp_distance) {
-            ticks = (-speed + std::sqrt(speed * speed + 2 * lerp_constant_ * distance)) / lerp_constant_;
-        } else {
-            ticks = lerp_time + (distance - lerp_distance) / velocity_final_;
-        }
-    } else {
-        ticks = distance / velocity_initial_;
-    }
-
-    long ticks_truncated = std::ceil(ticks);
-    return ticks_truncated <= budget ? std::make_optional(ticks_truncated) : std::nullopt;
-#else
-    long ticks_left = budget;
-    // interpolating time
-    while (ticks_left != 0L && speed > velocity_final_ && distance > 0.0f) {
-        --ticks_left;
-        distance -= (speed + half_lerp_constant_); // consistent with Halo, average of old and new velocity
-        speed    += lerp_constant_;
-    }
-
-    if (ticks_left == 0L || (destroyed_at_final_velocity_ && speed <= velocity_final_))
-        return std::nullopt;
-
-    while (ticks_left != 0L && distance > 0.0f) {
-        --ticks_left;
-        distance -= speed;
-    }
-
-    return ticks_left != 0L && distance <= 0.0f ? std::make_optional(budget - ticks_left)
-                                                : std::nullopt;
-#endif // SENTUTIL_USE_CLOSED_FORM_TRAJECTORY
-}
+    : definition(projectile)
+    , destroyed_at_final_speed(projectile.projectile.detonation.maximum_range <= 0.0f)
+    , does_lerp(projectile.does_lerp())
+    , speed_muzzle(projectile.projectile.physics.initial_velocity)
+    , speed_final(projectile.projectile.physics.final_velocity)
+    , damage_range(projectile.projectile.physics.air_damage_range)
+    , detonation_range(projectile.projectile.detonation.maximum_range)
+    , max_range(destroyed_at_final_speed && does_lerp ? lerp_distance : detonation_range)
+    , lerp_distance(damage_range.length())
+    , lerp_time(does_lerp ? 2 * lerp_distance / (speed_final + speed_muzzle) : 0.0f)
+    , lerp_constant(does_lerp ? (speed_final - speed_muzzle) / lerp_time : 0.0f)
+    , reciprocal_lerp_constant(does_lerp ? 1 / lerp_constant : 0.0f)
+    , half_lerp_constant(lerp_constant / 2)
+{ }
 
 bool GameContext::load()
 {
@@ -283,15 +223,6 @@ void GameContext::postupdate(const sentinel::digital_controls_state& digital)
     if (digital.primary_trigger && can_fire_primary_trigger) {
         ticks_since_fired = 0L;
     }
-}
-
-std::optional<long>
-GameContext::projectile_travel_ticks(const sentinel::real& distance,
-                                     std::optional<float>  speed,
-                                     std::optional<long>   budget)
-{
-    return projectile_context ? projectile_context.value().travel_ticks(distance, speed, budget)
-                              : std::nullopt;
 }
 
 long

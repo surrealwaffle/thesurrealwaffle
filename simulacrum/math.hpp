@@ -3,9 +3,11 @@
 #include <utility> // std::pair
 
 #include <sentinel/types.hpp>
-#include <sentinel/structures/object.hpp>
 
-#include "game_context.hpp"
+namespace simulacrum {
+    struct OrientationContext;
+    struct ProjectileContext;
+}
 
 namespace simulacrum { namespace math {
 
@@ -30,14 +32,17 @@ get_turn_angles(const sentinel::real3d&   source,
                 const sentinel::real3d&   target)
                 { return get_turn_angles(orientation, target - source); }
 
-/** \brief Calculates the initial velocity of a projectile fired towards
- *         \a aiming_direction with \a relative_muzzle_velocity from an object
- *         with velocity \a parent_velocity.
+/** \brief Calculates the initial velocity of a projectile.
+ *
+ * \param[in] muzzle_speed     The initial speed of the projectile as fired from rest.
+ * \param[in] aiming_direction The direction the weapon is aiming towards.
+ * \param[in] parent_velocity  The velocity of the firing weapon.
+ * \return The initial velocity of a projectile of the given parameters.
  */
 sentinel::real3d
-get_initial_projectile_velocity(const sentinel::real    relative_muzzle_velocity,
-                                const sentinel::real3d& aiming_direction,
-                                const sentinel::real3d& parent_velocity);
+initial_projectile_velocity(const sentinel::real    muzzle_speed,
+                            const sentinel::real3d& aiming_direction,
+                            const sentinel::real3d& parent_velocity);
 /** \brief Tests if a line segment intersects the sphere.
  *
  * \return `true` if the line segment intersects the sphere, otherwise `false`.
@@ -57,9 +62,49 @@ intersects_segment_sphere(const sentinel::position3d&  segment_begin,
  * \param[in] dt         The time differential.
  * \param[in] decay_rate The constant `r` in the above differential equation.
  * \param[in] time_rate  The constant `k` in the above differential equation.
- * \return The value of `x(t + dt)` according to the constraints.
+ * \return An approximation for `dx` according to the constraints.
  */
 float
-compute_decaying_differential(float x, float dt, float decay_rate, float constant_rate);
+decaying_differential(const float x,
+                      const float dt,
+                      const float decay_rate,
+                      const float constant_rate);
+
+/** \brief Calculates the number of ticks that a projectile's velocity lerps through.
+ *
+ * This calculation ignores gravity.
+ *
+ * \param[in] projectile    The context for the projectile definition.
+ * \param[in] initial_speed The initial speed of the projectile.
+ * \return A pair containing the number of ticks to interpolate through (first)
+ *         and the projectile's speed after interpolation (second).
+ */
+std::pair<float, float>
+projectile_interpolation_time(const ProjectileContext& projectile,
+                              const float initial_speed);
+
+/** \brief Calculates the distance that a projectile's speed interpolates through
+ *         from \a initial_speed.
+ *
+ * \param[in] projectile    The context for the projectile definition.
+ * \param[in] initial_speed The initial speed of the projectile.
+ * \return The number of Halo units \a projectile interpolates through.
+ */
+float
+projectile_interpolation_distance(const ProjectileContext& projectile,
+                                  const float initial_speed);
+
+/** \brief Calculates the time needed for a projectile to travel a certain distance.
+ *
+ * \param[in] projectile    The context for the projectile definition.
+ * \param[in] initial_speed The initial speed of the projectile.
+ * \param[in] distance      The goal distance for the projectile to  travel.
+ * \return A pair indicating the projectile travels \a distance before detonating (first)
+ *         and the number of ticks to travel \a distance (second).
+ */
+std::pair<bool, float>
+projectile_travel_time(const ProjectileContext& projectile,
+                       const float initial_speed,
+                       const float distance);
 
 } } // namespace simulacrum::math
