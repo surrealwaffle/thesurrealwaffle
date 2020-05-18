@@ -32,16 +32,18 @@ bool tantrum_digital(std::string_view input, short period, long hits);
  */
 void la_cucaracha();
 
-/** @brief If given a direction (`left`, `right`, or `none`), sets the player unit
- *         to strafe in that direction while turning by 180 degrees every tick.
+/** @brief If enabled, the user will turn by 180 degrees every tick, but movement
+ *         controls remain consistent with relative direction.
  *
  * This command is used to demonstrate that when processing input, turns take effect
  * before directional movement.
  *
- * @param[in] direction The direction to strafe.
- * @return `true` if `direction` is a valid direction, otherwise `false`.
+ * @param[in] enabled `true` to enable the described behaviour, otherwise
+ *                    `false` to disable.
+ *                    If supplied an empty optional, no change takes place.
+ * \return `true` if this setting is enabled, otherwise `false`.
  */
-bool sdbg_flip_strafe(std::string_view direction);
+bool sdbg_flip_move(std::optional<bool> enabled_);
 
 void chat_filter(long channel, int index, std::wstring_view text);
 
@@ -63,7 +65,7 @@ bool load()
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
         && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
         && install_script_function<"sdbg_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
-        && install_script_function<"sdbg_flip_strafe">(sdbg_flip_strafe, "strafes in a direction (left, right, none for off) while turning 180 degrees every tick")
+        && install_script_function<"sdbg_flip_move">(sdbg_flip_move, "allows for movement in a consistent direction while turning the character 180 degrees every tick")
         && sentutil::chat::install_chat_filter(chat_filter)
         && sentutil::controls::install_controls_filter(controls_filter);
 }
@@ -131,24 +133,23 @@ void la_cucaracha()
     cucaracha_subindex = 0;
 }
 
-enum class FlipStrafeState {
-    none,
-    left,
-    right
-};
-FlipStrafeState flip_strafe_state = FlipStrafeState::none;
+struct {
+    bool enabled;
+    bool is_flipped;
+} flip_move_settings;
 
-bool sdbg_flip_strafe(std::string_view direction)
+bool sdbg_flip_move(std::optional<bool> enabled_)
 {
-    if (direction == "left")
-        flip_strafe_state = FlipStrafeState::left;
-    else if (direction == "none")
-        flip_strafe_state = FlipStrafeState::none;
-    else if (direction == "right")
-        flip_strafe_state = FlipStrafeState::right;
-    else
-        return false;
-    return true;
+    if (enabled_) {
+        const bool enabled = enabled_.value();
+        const bool previously_enabled = flip_move_settings.enabled;
+
+        flip_move_settings.enabled = enabled;
+        if (enabled && !previously_enabled)
+            flip_move_settings.is_flipped = false;
+    }
+
+    return flip_move_settings.enabled;
 }
 
 void chat_filter(long channel, int index, std::wstring_view text)
@@ -174,24 +175,25 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
         pending_yaw_turn = 0.0f;
     }();
 
-    // do_flip_strafe
+    // sdbg_flip_move
     [&] {
-        if (flip_strafe_state == FlipStrafeState::none)
+        using sentutil::constants::pi;
+        auto& [enabled, is_flipped] = flip_move_settings;
+
+        // sdbg_flip_move must be temporarily enabled while is_flipped to return
+        // the user to an unflipped state, otherwise there is a 50/50 chance of
+        // leaving the user turned around
+        if (!enabled && !is_flipped)
             return;
 
         if (ticks > 0L) {
-            switch (flip_strafe_state) {
-            case FlipStrafeState::left:  flip_strafe_state = FlipStrafeState::right; break;
-            case FlipStrafeState::right: flip_strafe_state = FlipStrafeState::left;  break;
-            default: break;
-            }
-            analog.turn_left += sentutil::constants::pi;
+            is_flipped = !is_flipped;
+            analog.turn_left = is_flipped ? pi : -pi;
         }
 
-        switch (flip_strafe_state) {
-        case FlipStrafeState::left:  analog.move_left = 1.0f; break;
-        case FlipStrafeState::right: analog.move_left = -1.0f;  break;
-        default: break;
+        if (is_flipped) {
+            analog.move_forward = -analog.move_forward;
+            analog.move_left = -analog.move_left;
         }
     }();
 
