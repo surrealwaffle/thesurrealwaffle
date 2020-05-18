@@ -30,6 +30,8 @@ bool tantrum_digital(std::string_view input, short period, long hits);
 
 void la_cucaracha();
 
+bool sdbg_flip_strafe(std::string_view direction);
+
 void chat_filter(long channel, int index, std::wstring_view text);
 
 void controls_filter(sentinel::digital_controls_state& digital,
@@ -50,6 +52,7 @@ bool load()
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
         && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
         && install_script_function<"sdbg_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
+        && install_script_function<"sdbg_flip_strafe">(sdbg_flip_strafe, "strafes in a direction (left, right, none for off) while turning 180 degrees every tick")
         && sentutil::chat::install_chat_filter(chat_filter)
         && sentutil::controls::install_controls_filter(controls_filter);
 }
@@ -117,6 +120,26 @@ void la_cucaracha()
     cucaracha_subindex = 0;
 }
 
+enum class FlipStrafeState {
+    none,
+    left,
+    right
+};
+FlipStrafeState flip_strafe_state = FlipStrafeState::none;
+
+bool sdbg_flip_strafe(std::string_view direction)
+{
+    if (direction == "left")
+        flip_strafe_state = FlipStrafeState::left;
+    else if (direction == "none")
+        flip_strafe_state = FlipStrafeState::none;
+    else if (direction == "right")
+        flip_strafe_state = FlipStrafeState::right;
+    else
+        return false;
+    return true;
+}
+
 void chat_filter(long channel, int index, std::wstring_view text)
 {
     const bool is_user = sentutil::globals::players[index].network_index == sentinel_GetLocalPlayerNetworkIndex();
@@ -134,8 +157,32 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
                      [[maybe_unused]] float seconds,
                      [[maybe_unused]] long ticks)
 {
-    analog.turn_left += pending_yaw_turn;
-    pending_yaw_turn = 0.0f;
+    // pending_yaw_turn
+    [&] {
+        analog.turn_left += pending_yaw_turn;
+        pending_yaw_turn = 0.0f;
+    }();
+
+    // do_flip_strafe
+    [&] {
+        if (flip_strafe_state == FlipStrafeState::none)
+            return;
+
+        if (ticks > 0L) {
+            switch (flip_strafe_state) {
+            case FlipStrafeState::left:  flip_strafe_state = FlipStrafeState::right; break;
+            case FlipStrafeState::right: flip_strafe_state = FlipStrafeState::left;  break;
+            default: break;
+            }
+            analog.turn_left += sentutil::constants::pi;
+        }
+
+        switch (flip_strafe_state) {
+        case FlipStrafeState::left:  analog.move_left = 1.0f; break;
+        case FlipStrafeState::right: analog.move_left = -1.0f;  break;
+        default: break;
+        }
+    }();
 
     if (ticks && tantrum_action != nullptr && tantrum_hits != 0) {
         if ((tantrum_ticks_to_hit -= ticks) <= 0) {
