@@ -28,8 +28,19 @@ void time_chat(std::optional<std::string_view> text,
 
 bool tantrum_digital(std::string_view input, short period, long hits);
 
+/** \brief Sets the player to crouch in a sequence resembling the car horn tune.
+ */
 void la_cucaracha();
 
+/** @brief If given a direction (`left`, `right`, or `none`), sets the player unit
+ *         to strafe in that direction while turning by 180 degrees every tick.
+ *
+ * This command is used to demonstrate that when processing input, turns take effect
+ * before directional movement.
+ *
+ * @param[in] direction The direction to strafe.
+ * @return `true` if `direction` is a valid direction, otherwise `false`.
+ */
 bool sdbg_flip_strafe(std::string_view direction);
 
 void chat_filter(long channel, int index, std::wstring_view text);
