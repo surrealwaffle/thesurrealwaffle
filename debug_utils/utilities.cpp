@@ -194,6 +194,9 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
         if (is_flipped) {
             analog.move_forward = -analog.move_forward;
             analog.move_left = -analog.move_left;
+
+            digital.secondary_trigger = 0;
+            digital.primary_trigger   = 0;
         }
     }();
 
