@@ -16,7 +16,7 @@ simulacrum_config_weapon_preferred_zoom_level -1
 
 simulacrum_config_weapon "weapons\pistol\pistol"
 simulacrum_config_weapon_firing_interval 9
-simulacrum_config_weapon_preferred_zoom_level -1
+simulacrum_config_weapon_preferred_zoom_level 0
 
 simulacrum_config_weapon "weapons\plasma pistol\plasma pistol"
 simulacrum_config_weapon_firing_interval 6
