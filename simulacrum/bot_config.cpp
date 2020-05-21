@@ -80,7 +80,7 @@ const ConfigState& get_config_state()
 
 bool configure_for_map(const std::string_view map_name)
 {
-    config_state = ConfigState();
+    reset();
 
     std::printf("configuring bot for map: %.*s\n",
                 static_cast<int>(map_name.size()), map_name.data());
@@ -140,11 +140,14 @@ bool load()
 
 void reset()
 {
+    std::printf("lead_amount before reset: %ld", config_state.aim_config.lead_amount);
     const auto old_persistent = config_state.persistent;
     const auto old_aim_config = config_state.aim_config;
     config_state = ConfigState();
+    std::printf("lead_amount mid reset: %ld", config_state.aim_config.lead_amount);
     config_state.persistent = old_persistent;
     config_state.aim_config = old_aim_config;
+    std::printf("lead_amount after reset: %ld", config_state.aim_config.lead_amount);
 }
 
 } } // namespace simulacrum::config
@@ -212,8 +215,10 @@ bool install_config_field_accessors()
         constexpr auto command_name  = configure_aiming_prefix + fd.field_name;
         constexpr auto field_pointer = fd.field_pointer;
 
-        constexpr auto field_accessor = +[] (field_type value) -> void {
-            config_state.aim_config.*field_pointer = value;
+        constexpr auto field_accessor = +[] (std::optional<field_type> value) -> field_type {
+            auto& field = config_state.aim_config.*field_pointer;
+            if (value) field = value.value();
+            return field;
         };
         return install_script_function<command_name>(field_accessor, fd.field_usage);
     };
