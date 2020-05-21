@@ -81,7 +81,7 @@ decaying_differential(const float x,
     const float lbound = std::min(0.0f, x);
     const float ubound = std::max(0.0f, x);
 
-    const float dx = -decay_rate * x * dt - constant_rate * dt;
+    const float dx = -decay_rate * x * dt + (std::signbit(x) ? constant_rate : -constant_rate) * dt;
     return std::clamp(x + dx, lbound, ubound) - x;
 }
 
