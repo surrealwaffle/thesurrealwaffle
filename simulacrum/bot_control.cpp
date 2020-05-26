@@ -121,7 +121,8 @@ void update(sentinel::digital_controls_state& digital,
         if (!opt_raycast_result
             || opt_raycast_result.value().hit_type != 3
             || !(opt_raycast_result.value().hit_identity == target_player.unit
-                 || opt_raycast_result.value().hit_identity->object.parent == target_player.unit)) {
+                 || (target_player.unit->object.parent &&
+                     opt_raycast_result.value().hit_identity == target_player.unit->object.parent))) {
             return std::nullopt;
         }
 
