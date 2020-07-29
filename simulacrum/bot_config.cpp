@@ -134,20 +134,20 @@ bool load()
                 return static_cast<bool>(tag);
             },
             "sets the weapon to configure (with simulacrum_config_weapon_* commands); deselects if the tag is not found") &&
-        install_config_field_accessors();
+        install_config_field_accessors() &&
+        install_script_function<"simulacrum_configure_for_map">(
+            configure_for_map
+        );
 
 }
 
 void reset()
 {
-    std::printf("lead_amount before reset: %ld", config_state.aim_config.lead_amount);
     const auto old_persistent = config_state.persistent;
     const auto old_aim_config = config_state.aim_config;
     config_state = ConfigState();
-    std::printf("lead_amount mid reset: %ld", config_state.aim_config.lead_amount);
     config_state.persistent = old_persistent;
     config_state.aim_config = old_aim_config;
-    std::printf("lead_amount after reset: %ld", config_state.aim_config.lead_amount);
 }
 
 } } // namespace simulacrum::config
@@ -200,6 +200,7 @@ bool install_config_field_accessors()
         constexpr auto command_name  = configure_weapon_prefix + fd.field_name;
         constexpr auto field_pointer = fd.field_pointer;
         constexpr auto field_accessor = +[] (field_type value) -> void {
+            std::printf("test1\n");
             if (config_state.selected_weapon) {
                 sentinel::identity weapon_tag_id = config_state.selected_weapon.value();
                 WeaponConfig& config = config_state.get_weapon_config(weapon_tag_id);
@@ -216,6 +217,7 @@ bool install_config_field_accessors()
         constexpr auto field_pointer = fd.field_pointer;
 
         constexpr auto field_accessor = +[] (std::optional<field_type> value) -> field_type {
+            std::printf("test2\n");
             auto& field = config_state.aim_config.*field_pointer;
             if (value) field = value.value();
             return field;

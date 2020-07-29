@@ -130,7 +130,7 @@ projectile_travel_time(const ProjectileContext& projectile,
         ? (std::sqrt(squared(initial_speed) + 2 * projectile.lerp_constant * distance) - initial_speed) * projectile.reciprocal_lerp_constant
         : interpolation_time + (distance - interpolation_distance) / final_speed;
 
-    return {true, std::ceil(travel_time)};
+    return {true, travel_time};
 }
 
 } } // namespace simulacrum::math

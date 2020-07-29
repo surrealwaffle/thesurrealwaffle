@@ -83,7 +83,7 @@ struct script_node_type {
                               ///< 7: short, 8: long, 9: string, 10: script
     flags_short   flags;      // 06
     identity<script_node_type> next_node; // 08
-    h_long        position;   // 0C, locations expression in source i think,
+    h_long        position;   // 0C, locates the expression in source i think,
                               // ive seen it offset from [scenario_tag + 4A0]
 
     script_value_union value; // 10

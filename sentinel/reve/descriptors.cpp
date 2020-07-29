@@ -187,6 +187,17 @@ static const descriptor_sequence engine_UpdateTick {
 }; // engine_UpdateTick
 
 /*
+$ ==>  |.  5F            POP EDI
+$+1    |>  33C0          XOR EAX,EAX
+$+3        E8 21100000   CALL Enginel::UpdateCamera
+*/
+static const descriptor_sequence engine_UpdateCamera {
+    bytes{0x5F,
+          0x33, 0xC0},
+    detour{detour_call, engine::hook_UpdateCamera, ref(engine::proc_UpdateCamera)}
+};
+
+/*
 $ ==>     |.  8D5424 10     LEA EDX,[LOCAL.8]
 $+4       |.  52            PUSH EDX
 $+5       |.  E8 49531100   CALL engine::ExtrapolateLocalUnitDelta
@@ -739,6 +750,7 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(engine_UpdateTick),
     MAKE_PATCH(engine_ExtrapolateLocalUnitDelta),
     MAKE_PATCH(engine_UpdateBipedPosition),
+    MAKE_PATCH(engine_UpdateCamera),
 
     MAKE_PATCH(globals_GameTimeGlobals),
     MAKE_PATCH(globals_LocalPlayerGlobals),

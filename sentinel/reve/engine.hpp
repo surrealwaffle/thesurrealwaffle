@@ -10,6 +10,12 @@
 
 #include <sentinel/base.hpp>
 
+#include <type_traits>
+
+namespace sentinel {
+    struct camera_globals_type;
+}
+
 namespace reve { namespace engine {
 
 /** \brief Updates the netgame flags by a single tick, including teleporters.
@@ -34,6 +40,13 @@ using update_objects_tproc __attribute__((cdecl)) = void(*)();
  */
 using update_tick_tproc __attribute__((cdecl))
     = void(*)(P_IN ticks_long ticks_remaining /* STACK */);
+
+/** \brief Calculates the camera position for the current frame.
+ */
+using update_camera_tproc __attribute__((cdecl, regparm(1)))
+    = void(*)(P_IN index_short local_index /*EAX*/);
+
+using camera_update_filter = sentinel::function<void(sentinel::camera_globals_type* camera)>;
 
 /** \brief Extrapolates the change in position for local player's unit.
  *
@@ -64,18 +77,25 @@ using update_biped_position_tproc __attribute__((cdecl))
 extern update_netgame_flags_tproc proc_UpdateNetgameFlags;
 extern update_objects_tproc       proc_UpdateObjects;
 extern update_tick_tproc          proc_UpdateTick;
+extern update_camera_tproc        proc_UpdateCamera;
 
 extern extrapolate_local_unit_delta_tproc    proc_ExtrapolateLocalUnitDelta;
 extern get_biped_update_position_flags_tproc proc_GetBipedUpdatePositionFlags;
 extern update_biped_position_tproc           proc_UpdateBipedPosition;
+
+void hook_UpdateCamera(index_short local_index) __attribute__((cdecl, regparm(1)));
 
 sentinel_handle InstallPreCumulativeTickCallback();
 sentinel_handle InstallPostCumulativeTickCallback();
 sentinel_handle InstallPreTickCallback();
 sentinel_handle InstallPostTickCallback();
 
+sentinel_handle InstallCameraUpdateFilter(camera_update_filter&& filter);
+
 bool Init();
 
 void Debug();
+
+static_assert(std::is_same_v<update_camera_tproc, decltype(&hook_UpdateCamera)>);
 
 } } // namespace reve::engine

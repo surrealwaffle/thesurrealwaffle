@@ -53,4 +53,15 @@ bool> install_map_instantiation_callback(Callback cb)
     return utility::manage_handle(sentinel_Events_InstantiateMapCallback(&callback));
 }
 
+template<class Callback>
+std::enable_if_t<
+    std::is_invocable_v<Callback&, sentinel::camera_globals_type&>,
+bool> install_camera_update_callback(Callback cb)
+{
+    sentinel::function<void(sentinel::camera_globals_type*)> callback(
+        [cb] (sentinel::camera_globals_type* camera) { (void)cb(*camera); }
+    );
+    return utility::manage_handle(sentinel_Engine_CameraUpdateCallback(&callback));
+}
+
 } } // namespace sentutil::events

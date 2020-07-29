@@ -5,8 +5,9 @@
 //          https://www.boost.org/LICENSE_1_0.txt)
 
 #include <sentinel/events.hpp>
-#include "reve/table.hpp"
+#include "reve/engine.hpp"
 #include "reve/init.hpp"
+#include "reve/table.hpp"
 
 #include <utility> // std::move
 
@@ -26,5 +27,13 @@ sentinel_handle
 sentinel_Events_InstantiateMapCallback(function<void()>* callback)
 {
     return callback ? reve::init::InstallInstantiateMapCallback(std::move(*callback))
+                    : nullptr;
+}
+
+SENTINEL_API
+sentinel_handle
+sentinel_Engine_CameraUpdateCallback(sentinel::function<void(sentinel::camera_globals_type* camera)>* callback)
+{
+    return callback ? reve::engine::InstallCameraUpdateFilter(std::move(*callback))
                     : nullptr;
 }

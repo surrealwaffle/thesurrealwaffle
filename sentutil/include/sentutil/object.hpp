@@ -51,6 +51,9 @@ int get_object_markers(const sentinel::identity<sentinel::object_table_datum>& o
  */
 sentinel::point3d get_unit_camera(const sentinel::identity<sentinel::unit>& unit);
 
+sentinel::real3d extrapolate_unit_delta(const sentinel::identity<sentinel::unit>& unit,
+                                        sentinel::real seconds);
+
 /** \brief Updates the objects in the map by a number of ticks.
  *
  * If \a ticks is less than or equal to zero, this function simply returns.

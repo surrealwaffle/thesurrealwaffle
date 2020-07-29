@@ -100,7 +100,7 @@ projectile_interpolation_distance(const ProjectileContext& projectile,
  * \param[in] initial_speed The initial speed of the projectile.
  * \param[in] distance      The goal distance for the projectile to  travel.
  * \return A pair indicating the projectile travels \a distance before detonating (first)
- *         and the number of ticks to travel \a distance (second).
+ *         and the number of partial ticks to travel \a distance (second).
  */
 std::pair<bool, float>
 projectile_travel_time(const ProjectileContext& projectile,

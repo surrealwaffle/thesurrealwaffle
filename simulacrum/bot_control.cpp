@@ -103,7 +103,7 @@ void update(sentinel::digital_controls_state& digital,
 
             if (!in_range || travel_time > 20.0f)
                 return std::nullopt; // target cannot be hit/predicted within budget
-            sentutil::simulation::advance(static_cast<long>(travel_time));
+            sentutil::simulation::advance(static_cast<long>(std::ceil(travel_time)));
         } else {
             return std::nullopt;
         }
@@ -151,7 +151,7 @@ void update(sentinel::digital_controls_state& digital,
     };
 
     bool do_fire = false;
-    [&do_fire, &analog, &unit, local_player, &test_target, &aim_to_delta, &positional_goal_delta] { // aiming
+    [&do_fire, &analog, &unit, local_player, &test_target, &aim_to_delta, &positional_goal_delta, seconds] { // aiming
         if (!immediate_goals.target_player
             || !immediate_goals.target_player.value().get().unit)
             return;
@@ -159,11 +159,18 @@ void update(sentinel::digital_controls_state& digital,
         sentinel::player& target_player = immediate_goals.target_player.value();
         sentutil::simulation restore_point;
 
+        // NOTE: (contemplation)
+        // When firing, the projectile is (probably) spawned before the unit's
+        // first-person camera location is updated. As a result, advancing by one tick
+        // or extrapolating the unit camera position is unncessary and causes some
+        // leading issues.
+        // HOWEVER, it is likely that biped positions are updated BEFORE the projectile,
+        // so the math for projectile trajectory compensation needs to reflect this by
+        // using ceil on the travel time... though this should be the responsibility of the aimbot.
         const auto lead_ticks = config::get_config_state().aim_config.lead_amount;
-        sentutil::simulation::advance(1L);
         const sentinel::real3d camera = unit.object.parent ? sentutil::globals::camera_globals->position
                                                            : sentutil::object::get_unit_camera(local_player.unit);
-        sentutil::simulation::advance(game_context.get_ticks_until_fire() + lead_ticks - 1L);
+        sentutil::simulation::advance(game_context.get_ticks_until_fire() + lead_ticks);
 
         /*for (int i = std::max((int)aiming_lookahead_ticks, 1); i > 0; --i)*/ {
             std::optional<sentinel::real3d> delta = std::nullopt;

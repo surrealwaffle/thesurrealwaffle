@@ -38,4 +38,18 @@ sentinel::point3d get_unit_camera(const sentinel::identity<sentinel::unit>& unit
     return position;
 }
 
+sentinel::real3d extrapolate_unit_delta(const sentinel::identity<sentinel::unit>& unit,
+                                        const sentinel::real seconds)
+{
+    sentinel::real3d delta = {};
+    sentinel::real3d unk1 = {};
+    sentinel::real3d unk2 = {};
+
+    sentinel_Engine_ExtrapolateLocalUnitDelta(&delta,
+                                              &unk1, &unk2,
+                                              seconds);
+
+    return delta;
+}
+
 } } // namespace sentuti::object

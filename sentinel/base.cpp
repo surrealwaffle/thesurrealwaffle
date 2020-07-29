@@ -10,8 +10,10 @@
 #include "reve/table.hpp"
 #include <sentinel/structures/player.hpp>
 #include <sentinel/structures/table.hpp>
+#include <sentinel/console.hpp>
 
 #include <algorithm> // std::find_if
+#include <fstream>   // std::ifstream
 
 struct sentinel_handle_type {
     using resource_type = void*;
@@ -68,10 +70,11 @@ bool
 sentinel_ExecuteConfigFile(const char* lpszFile)
 {
     if (!sentinel_Globals_tables.script_node_table ||
-        !sentinel_Globals_tables.script_thread_table)
+        !sentinel_Globals_tables.script_thread_table ||
+        lpszFile == nullptr)
         return false;
 
-    return lpszFile ? reve::init::proc_ExecuteInitConfig(lpszFile) : false;
+    return reve::init::proc_ExecuteInitConfig(lpszFile;
 }
 
 #ifdef SENTINEL_BUILD_DLL

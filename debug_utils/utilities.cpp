@@ -28,10 +28,6 @@ void time_chat(std::optional<std::string_view> text,
 
 bool tantrum_digital(std::string_view input, short period, long hits);
 
-/** \brief Sets the player to crouch in a sequence resembling the car horn tune.
- */
-void la_cucaracha();
-
 /** @brief If enabled, the user will turn by 180 degrees every tick, but movement
  *         controls remain consistent with relative direction.
  *
@@ -45,6 +41,16 @@ void la_cucaracha();
  */
 bool sdbg_flip_move(std::optional<bool> enabled_);
 
+/** @brief Sets the camera to follow a #marker with position relative to that marker.
+ *
+ * The camera's position is set as an offset from the marker, where the offset is
+ * transformed by the parent node transform.
+ * The camera is set to point at the marker.
+ */
+void sdbg_selfie_camera(const char* marker, float x, float y, float z);
+
+void sdbg_disable_selfie_camera();
+
 void chat_filter(long channel, int index, std::wstring_view text);
 
 void controls_filter(sentinel::digital_controls_state& digital,
@@ -52,7 +58,11 @@ void controls_filter(sentinel::digital_controls_state& digital,
                      float seconds,
                      long ticks);
 
+void camera_update(sentinel::camera_globals_type& camera);
+
 float pending_yaw_turn = 0.0f;
+
+bool show_ping = false;
 
 } // namespace (anonymous)
 
@@ -63,11 +73,15 @@ bool load()
     using sentutil::script::install_script_function;
     return install_script_function<"sdbg_time_chat">(time_chat, "measures the time it takes for a string sent over a channel(default=all) to present in chat")
         && install_script_function<"sdbg_tantrum_digital">(tantrum_digital, "hits a key repeatedly periodically", "<string:action> <short:period> <long:count>")
-        && install_script_function<"sdbg_la_cucaracha">(la_cucaracha)
         && install_script_function<"sdbg_turn_yaw">(+[] (float f) { pending_yaw_turn += f; })
         && install_script_function<"sdbg_flip_move">(sdbg_flip_move, "allows for movement in a consistent direction while turning the character 180 degrees every tick")
+        && install_script_function<"sdbg_selfie_camera">(sdbg_selfie_camera, "sets the camera to track a local unit's marker")
+        && install_script_function<"sdbg_disable_selfie_camera">(sdbg_disable_selfie_camera, "")
+        && install_script_function<"sdbg_toggle_show_ping">(+[] () { show_ping = !show_ping; }, "")
+        && install_script_function<"sdbg_console_do">(+[] (const char* expression) { sentutil::console::process_expression(expression); })
         && sentutil::chat::install_chat_filter(chat_filter)
-        && sentutil::controls::install_controls_filter(controls_filter);
+        && sentutil::controls::install_controls_filter(controls_filter)
+        && sentutil::events::install_camera_update_callback(camera_update);
 }
 
 } // namespace halo_debug
@@ -125,14 +139,6 @@ bool tantrum_digital(std::string_view input, short period, long hits)
     return true;
 }
 
-int cucaracha_index = -1;
-int cucaracha_subindex = 0;
-void la_cucaracha()
-{
-    cucaracha_index = 0;
-    cucaracha_subindex = 0;
-}
-
 struct {
     bool enabled;
     bool is_flipped;
@@ -152,6 +158,28 @@ bool sdbg_flip_move(std::optional<bool> enabled_)
     return flip_move_settings.enabled;
 }
 
+struct {
+    bool             enabled;
+    const char*      marker;
+    sentinel::real3d offset;
+
+    sentinel::identity<sentinel::unit> last_unit;
+} selfie_camera_info = {false, "", {0, 0, 0}, sentinel::invalid_identity};
+
+void sdbg_selfie_camera(const char* marker, float x, float y, float z)
+{
+    selfie_camera_info.enabled = true;
+    selfie_camera_info.marker  = marker;
+    selfie_camera_info.offset  = {x, y, z};
+}
+
+void sdbg_disable_selfie_camera()
+{
+    selfie_camera_info.enabled = false;
+    selfie_camera_info.last_unit = sentinel::invalid_identity;
+    sentutil::console::process_expression("camera_control 0");
+}
+
 void chat_filter(long channel, int index, std::wstring_view text)
 {
     const bool is_user = sentutil::globals::players[index].network_index == sentinel_GetLocalPlayerNetworkIndex();
@@ -169,6 +197,22 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
                      [[maybe_unused]] float seconds,
                      [[maybe_unused]] long ticks)
 {
+    // show_ping
+    [] {
+        if (!show_ping)
+            return;
+
+        sentinel::player* local_player = nullptr;
+        for (sentinel::player& p : sentutil::globals::players)
+            if (p.is_local())
+                local_player = &p;
+        if (local_player == nullptr)
+            return;
+
+        sentutil::console::process_expression("cls");
+        sentutil::console::cprintf({1, 0.1, 1, 0.1}, "Ping|t%d", local_player->ping);
+    }();
+
     // pending_yaw_turn
     [&] {
         analog.turn_left += pending_yaw_turn;
@@ -214,52 +258,60 @@ void controls_filter([[maybe_unused]] sentinel::digital_controls_state& digital,
             digital.*tantrum_action = 0;
         }
     }
+}
 
-    {
-        struct cucaracha_point {
-            int duration;
-            int pause;
-        };
+void camera_update(sentinel::camera_globals_type& camera)
+{
+    [&] {
+        // selfie camera is not enabled, do not track
+        if (!selfie_camera_info.enabled)
+            return;
 
-        constexpr cucaracha_point cucaracha_data[] {
-            {4, 2},
-            {4, 2},
-            {4, 2},
-            {7, 2},
-            {6, 3},
-            {3, 2},
-            {3, 2},
-            {3, 2},
-            {7, 2},
-            {6, 4},
-            {5, 1},
-            {5, 1},
-            {3, 1},
-            {2, 1},
-            {2, 1},
-            {2, 1},
-            {5, 0},
-        };
-
-        auto get_pause_end = [] (const cucaracha_point& p) { return p.duration + p.pause; };
-
-        if (cucaracha_index >= 0 && (unsigned)cucaracha_index >= std::size(cucaracha_data)) {
-            cucaracha_index    = -1;
-            cucaracha_subindex = 0;
-        }
-
-        if (cucaracha_index >= 0) {
-            while ((unsigned)cucaracha_index < std::size(cucaracha_data) && cucaracha_subindex >= get_pause_end(cucaracha_data[cucaracha_index])) {
-                ++cucaracha_index;
-                cucaracha_subindex = 0;
-            }
-
-            if ((unsigned)cucaracha_index < std::size(cucaracha_data)) {
-                digital.crouch = cucaracha_subindex < cucaracha_data[cucaracha_index].duration;
-                cucaracha_subindex += ticks;
+        // find the local player in the players table
+        sentinel::player* local_player = nullptr;
+        for (sentinel::player& player : sentutil::globals::players) {
+            if (player.is_local()) {
+                local_player = &player;
+                break;
             }
         }
-    }
+
+        // if the local player does not exist, or they are not alive nor do they have
+        // a corpse to track, do nothing
+        if (!local_player || !(local_player->unit || local_player->last_unit))
+            return;
+
+        const auto unit = local_player->unit ? local_player->unit : local_player->last_unit;
+
+        // attempt to find the marker info
+        auto marker_result_opt = sentutil::object::get_object_marker(unit, selfie_camera_info.marker);
+        if (!marker_result_opt)
+            return; // marker not found
+
+        // if the player respawns, the camera control method gets reset
+        // this will set the control method so that the player biped appears properly
+        // also plays well with chimera to retain interpolation
+        if (selfie_camera_info.last_unit != unit) {
+            sentutil::console::process_expression("debug_camera_load");
+            selfie_camera_info.last_unit = unit;
+        }
+
+        const sentinel::object_marker_result_type& marker = marker_result_opt.value();
+
+        const auto new_position = marker.world_transform * selfie_camera_info.offset;
+        camera.position = new_position;
+        camera.forward = -marker.world_transform.ortho_transform[0];
+        camera.up      = marker.world_transform.ortho_transform[2];
+    }();
+
+    [&] {
+        if (flip_move_settings.is_flipped) {
+            for (int i = 0; i < 2; ++i) {
+                camera.forward[i] = -camera.forward[i];
+                camera.up[i] = -camera.up[i];
+            }
+        }
+    }();
 }
 
 } // namespace (anonymous)

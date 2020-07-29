@@ -70,6 +70,7 @@
 		<Unit filename="bsp_interface.hpp" />
 		<Unit filename="game_context.cpp" />
 		<Unit filename="game_context.hpp" />
+		<Unit filename="goals.hpp" />
 		<Unit filename="graph.cpp" />
 		<Unit filename="graph.hpp" />
 		<Unit filename="main.cpp" />
