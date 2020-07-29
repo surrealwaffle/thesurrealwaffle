@@ -23,6 +23,5 @@
 			<Depends filename="sentutil/sentutil.cbp" />
 		</Project>
 		<Project filename="debug_utils/debug_utils.cbp" />
-		<Project filename="imgui_overlay_example/imgui_overlay_example.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
