@@ -46,6 +46,7 @@ using real2 = real[2];
 using real3 = real[3];
 using real4 = real[4];
 
+using rgbf  = real3;
 using argbf = real4;
 
 using point2d = real2d;

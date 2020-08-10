@@ -32,7 +32,7 @@ void hook_UpdateCamera(index_short local_index)
 {
     proc_UpdateCamera(local_index);
 
-    for (auto&& filter : ::camera_update_filters)
+    for (auto&& filter : camera_update_filters)
         filter(reve::globals::ptr_CameraGlobals);
 }
 

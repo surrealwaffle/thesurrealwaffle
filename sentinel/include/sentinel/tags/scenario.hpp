@@ -10,12 +10,15 @@
 
 #include <sentinel/types.hpp>
 #include <sentinel/tags/generic.hpp>
+#include <sentinel/tags/sky.hpp>
 #include <sentinel/tags/structure_bsp.hpp>
 #include <sentinel/fwd/table_fwd.hpp>
 
 namespace sentinel { namespace tags {
 
 struct scenario {
+    using sky_tag_reference = tag_reference<sky>;
+
     struct scenery_block_element;
     struct netgame_flags_block_element;
     struct netgame_equipment_block_element;
@@ -26,7 +29,7 @@ struct scenario {
     tag_reference<void> wont_use_; ///< SBSP
     tag_reference<void> cant_use_; ///< SKY
 
-    tag_block<void> skies;
+    tag_block<sky_tag_reference> skies;
     int16           type;
     int16           flags;
     tag_block<void> child_scenarios;
@@ -164,10 +167,10 @@ struct scenario::starting_equipment_block_element {
 static_assert(offsetof(scenario::starting_equipment_block_element, item_collection) == 0x3C);
 
 struct scenario::structure_bsp_block_element {
-    int32 : 32; // file offset
-    int32 : 32; // probably size related
+    int32 unknown0; // file offset
+    int32 unknown1; // probably size related
     structure_bsp_header* structure_bsp_header;
-    int32 : 32; // ?? zero?
+    int32 unknown2; // ?? zero?
     tag_reference<structure_bsp> structure_bsp;
 }; static_assert(sizeof(scenario::structure_bsp_block_element) == 0x20);
 } } // namespace sentinel::tags

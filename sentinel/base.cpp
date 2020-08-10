@@ -74,7 +74,7 @@ sentinel_ExecuteConfigFile(const char* lpszFile)
         lpszFile == nullptr)
         return false;
 
-    return reve::init::proc_ExecuteInitConfig(lpszFile;
+    return reve::init::proc_ExecuteInitConfig(lpszFile);
 }
 
 #ifdef SENTINEL_BUILD_DLL

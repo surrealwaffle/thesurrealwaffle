@@ -131,6 +131,7 @@
 		<Unit filename="include/sentinel/tags/object.hpp" />
 		<Unit filename="include/sentinel/tags/projectile.hpp" />
 		<Unit filename="include/sentinel/tags/scenario.hpp" />
+		<Unit filename="include/sentinel/tags/sky.hpp" />
 		<Unit filename="include/sentinel/tags/structure_bsp.hpp" />
 		<Unit filename="include/sentinel/tags/weapon.hpp" />
 		<Unit filename="include/sentinel/traits.hpp" />

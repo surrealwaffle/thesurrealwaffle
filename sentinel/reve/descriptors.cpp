@@ -708,17 +708,6 @@ static const descriptor_sequence window_WindowHandle {
 }; // window_WindowHandle
 
 /*
-$ ==>  |.  68 00030000   PUSH 300
-$+5    |.  6A 00         PUSH 0
-$+7    |.  A3 4CD17100   MOV DWORD PTR DS:[render_device_info::heap1],EAX
-*/
-static const descriptor_sequence window_RenderDeviceInfo {
-    bytes{0x68, 0x00, 0x03, 0x00, 0x00,
-          0x6A, 0x00,
-          0xA3}, read_pointer{ref(window::ptr_RenderDeviceInfo)}
-}; // window_RenderDeviceInfo
-
-/*
 $ ==>   |.  83F8 FF       CMP EAX,-1
 $+3     |.  57            PUSH EDI
 $+4     |.  74 23         JE SHORT 00496ECD
@@ -729,6 +718,39 @@ static const descriptor_sequence window_CursorInfo {
           0x57,
           0x74, 0x23,
           0x8A, 0x0D}, read_pointer{ref(window::ptr_CursorInfo)}
+};
+
+/*
+$ ==>  |.  68 00030000   PUSH 300
+$+5    |.  6A 00         PUSH 0
+$+7    |.  A3 4CD17100   MOV DWORD PTR DS:[render_device_info::heap1],EAX
+*/
+static const descriptor_sequence window_VideoDevice {
+    bytes{0x68, 0x00, 0x03, 0x00, 0x00,
+          0x6A, 0x00,
+          0xA3}, read_pointer{ref(window::ptr_VideoDevice)}
+}; // window_VideoDevice
+
+/*
+$ ==>     |.  B9 0E000000   MOV ECX,0E
+$+5       |.  BF A0047C00   MOV EDI,OFFSET D3DDevicePresentationParameters
+*/
+static const descriptor_sequence window_VideoDevicePresentationParameters {
+    bytes{0xB9, 0x0E, 0x00, 0x00, 0x00,
+          0xBF}, read_pointer{ref(window::ptr_PresentationParameters)}
+}; // window_VideoDevicePresentationParameters
+
+/*
+$ ==>     |.  8915 00317C00   MOV DWORD PTR DS:[render::frame_count],EDX
+$+6       |.  E8 3F580000     CALL render::set_projective_extents
+$+B       |.  E8 4AAF0000     CALL render::begin_scene
+*/
+static const descriptor_sequence window_RendererBeginScene {
+    bytes{0x89, 0x15, -1, -1, -1, -1,
+          0xE8, -1, -1, -1, -1},
+    detour{detour_call,
+           window::hook_RendererBeginScene,
+           ref(window::proc_RendererBeginScene)}
 };
 
 #define MAKE_PATCH(name, ...) detours::batch_descriptor{#name, name, __VA_ARGS__}
@@ -798,8 +820,10 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(table_CreateTableFromHeap, ref(table::patch_CreateTableFromHeap)),
 
     MAKE_PATCH(window_WindowHandle),
-    MAKE_PATCH(window_RenderDeviceInfo),
-    MAKE_PATCH(window_CursorInfo)
+    MAKE_PATCH(window_CursorInfo),
+    MAKE_PATCH(window_VideoDevice),
+    MAKE_PATCH(window_VideoDevicePresentationParameters),
+    MAKE_PATCH(window_RendererBeginScene)
 };
 #undef MAKE_PATCH
 

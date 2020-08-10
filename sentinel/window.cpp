@@ -16,10 +16,10 @@ sentinel_window_GetWindow()
 }
 
 SENTINEL_API
-sentinel::render_device_info*
-sentinel_window_GetRenderDeviceInfo()
+sentinel::VideoDevice*
+sentinel_video_GetVideoDevice()
 {
-    return reve::window::ptr_RenderDeviceInfo;
+    return reve::window::ptr_VideoDevice;
 }
 
 SENTINEL_API
@@ -27,4 +27,22 @@ sentinel::cursor_info*
 sentinel_window_GetCursorInfo()
 {
     return reve::window::ptr_CursorInfo;
+}
+
+SENTINEL_API
+D3DPRESENT_PARAMETERS*
+sentinel_video_GetPresentationParameters()
+{
+    return reve::window::ptr_PresentationParameters;
+}
+
+SENTINEL_API
+sentinel_handle
+sentinel_video_InstallCustomRenderer(sentinel::CustomRendererFunction renderer)
+{
+    sentinel::CustomRendererFunction expected_renderer = nullptr;
+    using reve::window::custom_renderer;
+    return custom_renderer.compare_exchange_strong(expected_renderer, renderer)
+        ? sentinel::callback_handle([renderer] (auto&&) mutable { custom_renderer.compare_exchange_strong(renderer, nullptr); })
+        : nullptr;
 }

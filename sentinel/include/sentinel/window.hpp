@@ -5,11 +5,10 @@
 //          https://www.boost.org/LICENSE_1_0.txt)
 
 /** \file window.hpp
- * \brief Provides access to various handles, interfaces, and info relating to Halo's
- *        window and render context/device.
+ * \brief Provisions for access and control to Halo's window and rendering contexts.
  *
- * This file is not included as part of `sentinel/all.hpp`, because it includes
- * both `windows.h` and `d3d9.h`, both of which may be undesirable.
+ * This header is not included as part of `sentinel/all.hpp`, because it includes
+ * both `windows.h` and `d3d9.h`.
  */
 
 #pragma once
@@ -21,10 +20,11 @@
 
 #include <sentinel/config.hpp>
 #include <sentinel/fundamental_types.hpp>
+#include <sentinel/base.hpp>
 
 namespace sentinel {
 
-struct render_device_info {
+struct VideoDevice {
     void* heap1; // size of 64512 bytes, seems to be an array with stride 168 bytes, array of 384 elements
     void* heap2; // size of 5376 bytes, seems to be an array with stride 168 bytes, array of 32 elements
     int32 index_heap1; // indexes into array at heap1
@@ -34,13 +34,14 @@ struct render_device_info {
     void* rasterizer_data; // from the the game_globals tag, game_globals.rasterizer_data.pointer
     int32 KsUpdate_success; // 0 on failure, 1 on success, unchanged if KsUpdate was not called
     boolean is_fullscreen;
-    boolean unknown0;
-    boolean do_present;
-    boolean do_end_scene;
+    boolean does_not_require_profile_reset; // 0 to indicate that the device needs to be reset on a profile switch, otherwise non-zero
+    boolean requires_present; // Checked to skip a call to pDevice->Present(), but I don't know how this path is taken.
+                              // Might require a fixed-function pipeline or vsync enabled.
+    boolean requires_end_scene;
     boolean unknown1;
     LPDIRECT3DDEVICE9 pDevice;
     LPDIRECT3D9       pD3D;
-}; static_assert(sizeof(render_device_info) == 0x30);
+}; static_assert(sizeof(VideoDevice) == 0x30);
 
 struct cursor_info {
     boolean unknown00;
@@ -55,18 +56,20 @@ struct cursor_info {
     // quite a bit more goes here
 };
 
-static_assert(offsetof(render_device_info, heap1) == 0x00);
-static_assert(offsetof(render_device_info, heap2) == 0x04);
-static_assert(offsetof(render_device_info, index_heap1) == 0x08);
-static_assert(offsetof(render_device_info, index_heap2) == 0x0C);
-static_assert(offsetof(render_device_info, heap3) == 0x10);
-static_assert(offsetof(render_device_info, rasterizer_data) == 0x18);
-static_assert(offsetof(render_device_info, KsUpdate_success) == 0x1C);
-static_assert(offsetof(render_device_info, is_fullscreen) == 0x20);
-static_assert(offsetof(render_device_info, do_present) == 0x22);
-static_assert(offsetof(render_device_info, do_end_scene) == 0x23);
-static_assert(offsetof(render_device_info, pDevice) == 0x28);
-static_assert(offsetof(render_device_info, pD3D) == 0x2C);
+using CustomRendererFunction = bool(*)();
+
+static_assert(offsetof(VideoDevice, heap1) == 0x00);
+static_assert(offsetof(VideoDevice, heap2) == 0x04);
+static_assert(offsetof(VideoDevice, index_heap1) == 0x08);
+static_assert(offsetof(VideoDevice, index_heap2) == 0x0C);
+static_assert(offsetof(VideoDevice, heap3) == 0x10);
+static_assert(offsetof(VideoDevice, rasterizer_data) == 0x18);
+static_assert(offsetof(VideoDevice, KsUpdate_success) == 0x1C);
+static_assert(offsetof(VideoDevice, is_fullscreen) == 0x20);
+static_assert(offsetof(VideoDevice, requires_present) == 0x22);
+static_assert(offsetof(VideoDevice, requires_end_scene) == 0x23);
+static_assert(offsetof(VideoDevice, pDevice) == 0x28);
+static_assert(offsetof(VideoDevice, pD3D) == 0x2C);
 
 }
 
@@ -79,14 +82,36 @@ SENTINEL_API
 HWND
 sentinel_window_GetWindow();
 
-/** \brief Returns the render device information.
- */
-SENTINEL_API
-sentinel::render_device_info*
-sentinel_window_GetRenderDeviceInfo();
-
 SENTINEL_API
 sentinel::cursor_info*
 sentinel_window_GetCursorInfo();
+
+
+/** \brief Returns information and handles about the video device associated with
+ *         the main window.
+ */
+SENTINEL_API
+sentinel::VideoDevice*
+sentinel_video_GetVideoDevice();
+
+/** \brief Returns a pointer to the presentation parameters used for the video device.
+ */
+SENTINEL_API
+D3DPRESENT_PARAMETERS*
+sentinel_video_GetPresentationParameters();
+
+/** \brief Installs \a renderer to be called to perform rendering.
+ *
+ * If installed, \a renderer is called after `BeginScene()` is invoked on the device.
+ * `sentinel` will perform the necessary cleanup, so renderer should not call
+ * `EndScene()` on the device.
+ *
+ * \a renderer should return `true` if it was successful in rendering.
+ * A return value of `false` indicates to `sentinel` that the standard rendering path
+ * should be used instead.
+ */
+SENTINEL_API
+sentinel_handle
+sentinel_video_InstallCustomRenderer(sentinel::CustomRendererFunction renderer);
 
 } // extern "C"
