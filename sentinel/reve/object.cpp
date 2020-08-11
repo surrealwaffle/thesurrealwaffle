@@ -23,9 +23,8 @@ void GetUnitCameraPosition(identity_raw identity, real* out)
     // therefore we list ECX in the output operands and discard the result
     // in order to avoid discarding the asm statement, it must be marked volatile
     regint discard;
-    sentinel::real3& out_result = *reinterpret_cast<sentinel::real3*>(out);
     asm volatile("call *%[GetUnitCameraPosition] \n\t"
-        : "=c" (discard), "=m" (out_result)
+        : "=c" (discard), "=m" (*reinterpret_cast<real (*)[3]>(out))
         : [GetUnitCameraPosition] "rm" (proc_GetUnitCameraPosition), "c" (identity), "D" (out)
         : "cc", "eax", "edx");
 }
