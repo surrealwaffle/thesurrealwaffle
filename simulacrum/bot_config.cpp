@@ -200,7 +200,6 @@ bool install_config_field_accessors()
         constexpr auto command_name  = configure_weapon_prefix + fd.field_name;
         constexpr auto field_pointer = fd.field_pointer;
         constexpr auto field_accessor = +[] (field_type value) -> void {
-            std::printf("test1\n");
             if (config_state.selected_weapon) {
                 sentinel::identity weapon_tag_id = config_state.selected_weapon.value();
                 WeaponConfig& config = config_state.get_weapon_config(weapon_tag_id);
@@ -217,7 +216,6 @@ bool install_config_field_accessors()
         constexpr auto field_pointer = fd.field_pointer;
 
         constexpr auto field_accessor = +[] (std::optional<field_type> value) -> field_type {
-            std::printf("test2\n");
             auto& field = config_state.aim_config.*field_pointer;
             if (value) field = value.value();
             return field;
