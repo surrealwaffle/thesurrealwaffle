@@ -9,22 +9,6 @@
 #include "types.hpp"
 #include <sentinel/fwd/globals_fwd.hpp>
 
-namespace sentinel {
-
-struct game_time_globals_type;
-struct machine_globals_type;
-struct allocator_globals_type;
-struct camera_globals_type;
-struct chat_globals_type;
-struct console_globals_type;
-struct map_globals_type;
-struct local_player_globals_type;
-struct runtime_sound_globals_type;
-struct tags_array_header_type;
-struct profile_user_name_type;
-
-} // namespace sentinel
-
 namespace reve {
 
 using sentinel::GameEdition;
@@ -66,6 +50,7 @@ inline sentinel::map_globals_type*&           ptr_MapGlobals = sentinel_Globals_
 inline sentinel::runtime_sound_globals_type*& ptr_RuntimeSoundGlobals = sentinel_Globals_globals.runtime_sound_globals;
 inline sentinel::map_file_header_type*&       ptr_MapFileHeader = sentinel_Globals_globals.map_file_header;
 inline sentinel::profile_user_name_type*&     ptr_ProfileUserName = sentinel_Globals_globals.profile_user_name;
+inline sentinel::map_cache_context*&          ptr_MapCacheContext = sentinel_Globals_globals.map_cache_context;
 
 extern command_line_args_type* ptr_CommandLineArgs;
 

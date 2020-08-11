@@ -43,6 +43,6 @@ sentinel_video_InstallCustomRenderer(sentinel::CustomRendererFunction renderer)
     sentinel::CustomRendererFunction expected_renderer = nullptr;
     using reve::window::custom_renderer;
     return custom_renderer.compare_exchange_strong(expected_renderer, renderer)
-        ? sentinel::callback_handle([renderer] (auto&&) mutable { custom_renderer.compare_exchange_strong(renderer, nullptr); })
+        ? sentinel::callback_handle([] (auto&&) { custom_renderer.store(nullptr); })
         : nullptr;
 }

@@ -7,6 +7,7 @@
 #include "object.hpp"
 
 #include <sentinel/config.hpp>
+#include <sentinel/types.hpp>
 
 namespace reve { namespace object {
 
@@ -22,9 +23,10 @@ void GetUnitCameraPosition(identity_raw identity, real* out)
     // therefore we list ECX in the output operands and discard the result
     // in order to avoid discarding the asm statement, it must be marked volatile
     regint discard;
-    asm volatile("call *%4 \n\t"
-        : "=c" (discard), "=m" (out[0]), "=m" (out[1]), "=m" (out[2])
-        : "rm" (proc_GetUnitCameraPosition), "c" (identity), "D" (out)
+    sentinel::real3& out_result = *reinterpret_cast<sentinel::real3*>(out);
+    asm volatile("call *%[GetUnitCameraPosition] \n\t"
+        : "=c" (discard), "=m" (out_result)
+        : [GetUnitCameraPosition] "rm" (proc_GetUnitCameraPosition), "c" (identity), "D" (out)
         : "cc", "eax", "edx");
 }
 

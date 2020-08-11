@@ -9,22 +9,9 @@
 #include <string_view>
 
 #include <sentinel/config.hpp>
+#include <sentinel/structures/globals.hpp>
 
 namespace reve { namespace globals {
-
-/*
-sentinel::game_time_globals_type**    ptr_pGameTimeGlobals    = nullptr;
-sentinel::local_player_globals_type** ptr_pLocalPlayerGlobals = nullptr;
-sentinel::tags_array_header_type**    ptr_pTagsArrayHeader    = nullptr;
-
-sentinel::allocator_globals_type*     ptr_AllocatorGlobals    = nullptr;
-sentinel::chat_globals_type*          ptr_ChatGlobals         = nullptr;
-sentinel::console_globals_type*       ptr_ConsoleGlobals      = nullptr;
-sentinel::machine_globals_type*       ptr_MachineGlobals      = nullptr;
-sentinel::map_globals_type*           ptr_MapGlobals          = nullptr;
-sentinel::camera_globals_type*        ptr_CameraGlobals       = nullptr;
-sentinel::runtime_sound_globals_type* ptr_RuntimeSoundGlobals = nullptr;
-*/
 
 command_line_args_type* ptr_CommandLineArgs = nullptr;
 
@@ -43,6 +30,9 @@ bool Init()
     else
         return false;
 
+    if (ptr_MapCacheContext)
+        ptr_MapFileHeader = &ptr_MapCacheContext->map_file_header;
+
     return ptr_pGameTimeGlobals
         && ptr_pLocalPlayerGlobals
         && ptr_pTagsArrayHeader
@@ -55,7 +45,8 @@ bool Init()
         && ptr_RuntimeSoundGlobals
         && ptr_CommandLineArgs
         && ptr_MapFileHeader
-        && ptr_ProfileUserName;
+        && ptr_ProfileUserName
+        && ptr_MapCacheContext;
 }
 
 void Debug()
@@ -72,6 +63,7 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", ptr_MapGlobals);
     SENTINEL_DEBUG_VAR("%p", ptr_CameraGlobals);
     SENTINEL_DEBUG_VAR("%p", ptr_RuntimeSoundGlobals);
+    SENTINEL_DEBUG_VAR("%p", ptr_MapCacheContext);
     SENTINEL_DEBUG_VAR("%p", ptr_MapFileHeader);
     SENTINEL_DEBUG_VAR("%p", ptr_ProfileUserName);
 }

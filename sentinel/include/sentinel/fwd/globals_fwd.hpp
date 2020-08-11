@@ -22,6 +22,7 @@ struct map_globals_type;
 struct runtime_sound_globals_type;
 struct tags_array_header_type;
 struct terminal_type;
+struct map_cache_context;
 struct map_file_header_type;
 struct profile_user_name_type;
 
@@ -46,6 +47,8 @@ struct globals_aggregate_type {
 
     map_file_header_type*       map_file_header;
     profile_user_name_type*     profile_user_name;
+
+    map_cache_context*          map_cache_context;
 };
 
 } // namespace sentinel

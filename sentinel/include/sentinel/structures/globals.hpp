@@ -180,6 +180,11 @@ struct map_file_header_type {
     signature foot;
 }; static_assert(sizeof(map_file_header_type) == 0x800);
 
+struct map_cache_context {
+    boolean              is_loaded;
+    map_file_header_type map_file_header;
+}; static_assert(sizeof(map_cache_context) == 0x804);
+
 struct profile_user_name_type {
     h_wchar tab;
     h_wchar name[12];

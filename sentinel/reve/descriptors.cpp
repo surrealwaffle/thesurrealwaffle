@@ -373,10 +373,21 @@ Address Hex dump          Command                                        Comment
 $ ==>   |.  B9 00020000   MOV ECX,200                                    ; first 800 bytes
 $+5     |.  BF 54816A00   MOV EDI,OFFSET game::current_map_cache_header  ; static map cache header, first 800 bytes
 */
+/* // REPLACED BY globals_MapCacheContext
 static const descriptor_sequence globals_MapFileHeader {
     bytes{0xB9, 0x00, 0x02, 0x00, 0x00,
           0xBF}, read_pointer{ref(globals::ptr_MapFileHeader)}
 }; // globals_MapFileHeader
+*/
+
+/*
+$ ==>   |.  8BC7           MOV EAX,EDI
+$+2     |.  C605 50816A00  MOV BYTE PTR DS:[is_map_cache_loaded],1
+*/
+static const descriptor_sequence globals_MapCacheContext {
+    bytes{0x8B, 0xC7,
+          0xC6, 0x05}, read_pointer{ref(globals::ptr_MapCacheContext)}
+}; // globals_MapCacheContext
 
 /*
 $ ==>  |> \B9 FF070000   MOV ECX,7FF
@@ -785,8 +796,8 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(globals_RuntimeSoundGlobals),
     MAKE_PATCH(globals_CommandLineArgs),
     MAKE_PATCH(globals_EditionString),
-    MAKE_PATCH(globals_MapFileHeader),
     MAKE_PATCH(globals_ProfileUserName),
+    MAKE_PATCH(globals_MapCacheContext),
 
     MAKE_PATCH(init_ProcessStartup),
     MAKE_PATCH(init_ExecuteInitConfig),
