@@ -23,5 +23,6 @@
 			<Depends filename="sentutil/sentutil.cbp" />
 		</Project>
 		<Project filename="debug_utils/debug_utils.cbp" />
+		<Project filename="raytracer/raytracer.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>
