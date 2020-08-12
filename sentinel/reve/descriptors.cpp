@@ -406,12 +406,14 @@ static const descriptor_sequence globals_MapFileHeader {
 */
 
 /*
-$ ==>   |.  8BC7           MOV EAX,EDI
-$+2     |.  C605 50816A00  MOV BYTE PTR DS:[is_map_cache_loaded],1
+$ ==>     |.  E8 690A0000              CALL 00442F00
+$+5       |.  C605 50816A00 00         MOV BYTE PTR DS:[is_map_cache_loaded],0
+$+C       |.  C705 14BC8700 00000000   MOV DWORD PTR DS:[lpTagsArray],0
 */
 static const descriptor_sequence globals_MapCacheContext {
-    bytes{0x8B, 0xC7,
-          0xC6, 0x05}, read_pointer{ref(globals::ptr_MapCacheContext)}
+    bytes{0xE8, -1, -1, -1, -1,
+          0xC6, 0x05}, read_pointer{ref(globals::ptr_MapCacheContext)}, bytes{0x00},
+    bytes{0xC7, 0x05, -1, -1, -1, -1, 0x00, 0x00, 0x00, 0x00}
 }; // globals_MapCacheContext
 
 /*
