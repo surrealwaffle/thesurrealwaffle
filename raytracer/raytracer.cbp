@@ -57,11 +57,14 @@
 			<Add directory="../sentutil/include" />
 		</Compiler>
 		<Linker>
+			<Add option="-static" />
 			<Add library="sentutil" />
 			<Add library="sentinel" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Unit filename="main.h" />
+		<Unit filename="renderer.cpp" />
+		<Unit filename="renderer.hpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
