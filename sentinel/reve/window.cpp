@@ -56,7 +56,8 @@ bool Init()
         && ptr_CursorInfo
         && ptr_VideoDevice
         && ptr_PresentationParameters
-        && proc_RendererBeginScene;
+        && proc_RendererBeginScene
+        && proc_RendererResetVideoDevice;
 }
 
 void Debug()
@@ -66,6 +67,7 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", ptr_VideoDevice);
     SENTINEL_DEBUG_VAR("%p", ptr_PresentationParameters);
     SENTINEL_DEBUG_VAR("%p", proc_RendererBeginScene);
+    SENTINEL_DEBUG_VAR("%p", proc_RendererResetVideoDevice);
 }
 
 } } // namespace reve::window
