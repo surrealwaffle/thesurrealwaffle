@@ -14,10 +14,10 @@ namespace sentinel {
 struct raycast_result_type {
     int16  hit_type; ///< `-1` for none, `0` for water, `2` for BSP, `3` for object
 
-    int32  unknown00;
-    int16  unknown01;
-    int32  unknown02;
-    int16  unknown03;
+    index_long  leaf_index; ///< leaves in the structure_bsp tag, `-1` if no leaf
+    index_short cluster_index; ///< cluster index of the leaf, `-1` for no cluster
+    index_long  unknown02; // some sort of leaf_index, idk what
+    index_short unknown03; // another cluster_index for the leaf at unknown02
 
     real   portion_to_target; ///< Equal to `norm(terminal-source)/norm(target-source)`
     real3d terminal;          ///< The point of intersection or the endpoint.
@@ -33,7 +33,7 @@ struct raycast_result_type {
 
     // if hit_type != object, no fields in [x38 .. x44) are set
 
-    identity<object> hit_identity;      ///< The identity of the object hit by the raycast, if #hit_type is `3`.
+    identity<object> hit_identity;      ///< The identity of the object hit by the ray, if #hit_type is `3`.
 
     int16    object_region_index;        ///< The index of the collision model region intersected.
     int16    object_node_index;          ///< The index of the collision model node intersected.

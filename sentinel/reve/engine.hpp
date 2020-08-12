@@ -46,6 +46,9 @@ using update_tick_tproc __attribute__((cdecl))
 using update_camera_tproc __attribute__((cdecl, regparm(1)))
     = void(*)(P_IN index_short local_index /*EAX*/);
 
+using unload_game_instance_tproc __attribute__((cdecl)) = void(*)();
+using destroy_engine_tproc __attribute__((cdecl)) = void(*)();
+
 using camera_update_filter = sentinel::function<void(sentinel::camera_globals_type* camera)>;
 
 /** \brief Extrapolates the change in position for local player's unit.
@@ -78,6 +81,8 @@ extern update_netgame_flags_tproc proc_UpdateNetgameFlags;
 extern update_objects_tproc       proc_UpdateObjects;
 extern update_tick_tproc          proc_UpdateTick;
 extern update_camera_tproc        proc_UpdateCamera;
+extern unload_game_instance_tproc proc_UnloadGameInstance;
+extern destroy_engine_tproc       proc_DestroyEngine;
 
 extern extrapolate_local_unit_delta_tproc    proc_ExtrapolateLocalUnitDelta;
 extern get_biped_update_position_flags_tproc proc_GetBipedUpdatePositionFlags;
@@ -85,17 +90,25 @@ extern update_biped_position_tproc           proc_UpdateBipedPosition;
 
 void hook_UpdateCamera(index_short local_index) __attribute__((cdecl, regparm(1)));
 
+void hook_UnloadGameInstance() __attribute__((cdecl));
+
+void hook_DestroyEngine() __attribute__((cdecl));
+
 sentinel_handle InstallPreCumulativeTickCallback();
 sentinel_handle InstallPostCumulativeTickCallback();
 sentinel_handle InstallPreTickCallback();
 sentinel_handle InstallPostTickCallback();
 
 sentinel_handle InstallCameraUpdateFilter(camera_update_filter&& filter);
+sentinel_handle InstallUnloadGameCallback(void (*callback)());
+sentinel_handle InstallDestroyEngineCallback(void (*callback)());
 
 bool Init();
 
 void Debug();
 
 static_assert(std::is_same_v<update_camera_tproc, decltype(&hook_UpdateCamera)>);
+static_assert(std::is_same_v<unload_game_instance_tproc, decltype(&hook_UnloadGameInstance)>);
+static_assert(std::is_same_v<destroy_engine_tproc, decltype(&hook_DestroyEngine)>);
 
 } } // namespace reve::engine

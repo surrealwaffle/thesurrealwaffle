@@ -103,8 +103,7 @@ sentinel_video_GetPresentationParameters();
 /** \brief Installs \a renderer to be called to perform rendering.
  *
  * If installed, \a renderer is called after `BeginScene()` is invoked on the device.
- * `sentinel` will perform the necessary cleanup, so renderer should not call
- * `EndScene()` on the device.
+ * The \a renderer must invoke `EndScene()` on a successful render.
  *
  * \a renderer should return `true` if it was successful in rendering.
  * A return value of `false` indicates to `sentinel` that the standard rendering path

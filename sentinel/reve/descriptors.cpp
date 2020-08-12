@@ -189,12 +189,37 @@ static const descriptor_sequence engine_UpdateTick {
 /*
 $ ==>  |.  5F            POP EDI
 $+1    |>  33C0          XOR EAX,EAX
-$+3        E8 21100000   CALL Enginel::UpdateCamera
+$+3        E8 21100000   CALL Engine::UpdateCamera
 */
 static const descriptor_sequence engine_UpdateCamera {
     bytes{0x5F,
           0x33, 0xC0},
     detour{detour_call, engine::hook_UpdateCamera, ref(engine::proc_UpdateCamera)}
+}; // engine_UpdateCamera
+
+/*
+$ ==>   |.  C705 B89A7100 C8000000  |MOV DWORD PTR DS:[719AB8],0C8
+$+A     |.^ E9 5BF4FFFF             \JMP engine::game_loop
+$+F     |>  E8 641B0000             CALL UnloadGame
+*/
+static const descriptor_sequence engine_LeaveGameLoop {
+    bytes{0xC7, 0x05, -1, -1, -1, -1, 0xC8, 0x00, 0x00, 0x00,
+          0xE9, -1, -1, -1, -1},
+    detour{detour_call, engine::hook_UnloadGameInstance,
+           ref(engine::proc_UnloadGameInstance)}
+};
+
+/*
+$ ==>   |.  83C4 04        ADD ESP,4
+$+3     |.  E8 CC5CF8FF    CALL engine::run
+$+8     |.  E8 C7F6FFFF    CALL DestroyEngine
+$+D     |>  8B45 E0        MOV EAX,DWORD PTR SS:[EBP-20]
+*/
+static const descriptor_sequence engine_DestroyEngine {
+    bytes{0x83, 0xC4, 0x04,
+          0xE8, -1, -1, -1, -1},
+    detour{detour_call, engine::hook_DestroyEngine, ref(engine::proc_DestroyEngine)},
+    bytes{0x8B, 0x45, 0xE0}
 };
 
 /*
@@ -743,6 +768,19 @@ static const descriptor_sequence window_VideoDevice {
 }; // window_VideoDevice
 
 /*
+$ ==>   |.  8D4C24 30      LEA ECX,[LOCAL.13]
+$+4     |.  51             PUSH ECX                           ; /Arg1 => OFFSET LOCAL.13, presentation parameters
+$+5     |.  E8 1DA50500    CALL ResetVideoDevice              ; \halo.ResetVideoDevice, changing resolution
+$+A     |.  A1 74D17100    MOV EAX,DWORD PTR DS:[pD3DDevice]  ; use: pDevice->GetDisplayMode()
+*/
+static const descriptor_sequence window_ChangeResolutionResetVideoDevice {
+    bytes{0x8D, 0x4C, 0x24, 0x30,
+          0x51},
+    detour{detour_target, window::tramp_ResetVideoDevice, ref(window::proc_RendererResetVideoDevice)},
+    bytes{0xA1}
+}; // window_ChangeResolutionResetVideoDevice
+
+/*
 $ ==>     |.  B9 0E000000   MOV ECX,0E
 $+5       |.  BF A0047C00   MOV EDI,OFFSET D3DDevicePresentationParameters
 */
@@ -752,12 +790,12 @@ static const descriptor_sequence window_VideoDevicePresentationParameters {
 }; // window_VideoDevicePresentationParameters
 
 /*
-$ ==>     |.  8915 00317C00   MOV DWORD PTR DS:[render::frame_count],EDX
-$+6       |.  E8 3F580000     CALL render::set_projective_extents
-$+B       |.  E8 4AAF0000     CALL render::begin_scene
+$ ==>   |.  895424 1C        MOV DWORD PTR SS:[LOCAL.0],EDX
+$+4     |.  E8 F55E0000      CALL render::set_projective_extents
+$+9     |.  E8 00B60000      CALL render::begin_scene
 */
 static const descriptor_sequence window_RendererBeginScene {
-    bytes{0x89, 0x15, -1, -1, -1, -1,
+    bytes{0x89, 0x54, 0x24, 0x1C,
           0xE8, -1, -1, -1, -1},
     detour{detour_call,
            window::hook_RendererBeginScene,
@@ -784,6 +822,8 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(engine_ExtrapolateLocalUnitDelta),
     MAKE_PATCH(engine_UpdateBipedPosition),
     MAKE_PATCH(engine_UpdateCamera),
+    MAKE_PATCH(engine_LeaveGameLoop),
+    MAKE_PATCH(engine_DestroyEngine),
 
     MAKE_PATCH(globals_GameTimeGlobals),
     MAKE_PATCH(globals_LocalPlayerGlobals),
@@ -833,6 +873,8 @@ static const std::tuple patch_descriptors
     MAKE_PATCH(window_WindowHandle),
     MAKE_PATCH(window_CursorInfo),
     MAKE_PATCH(window_VideoDevice),
+    MAKE_PATCH(window_ChangeResolutionResetVideoDevice,
+               ref(window::patch_ResetVideoDevice)),
     MAKE_PATCH(window_VideoDevicePresentationParameters),
     MAKE_PATCH(window_RendererBeginScene)
 };

@@ -26,8 +26,7 @@ extern "C" {
  */
 SENTINEL_API
 sentinel_handle
-sentinel_Events_LoadMapCacheCallback(
-    sentinel::function<void(sentinel::h_ccstr cache_name)>* callback);
+sentinel_Events_LoadMapCacheCallback(sentinel::function<void(sentinel::h_ccstr cache_name)>* callback);
 
 /** \brief Installs \a callback to be called on when a map is being instantiated.
  *
@@ -49,5 +48,28 @@ sentinel_Events_InstantiateMapCallback(sentinel::function<void()>* callback);
 SENTINEL_API
 sentinel_handle
 sentinel_Engine_CameraUpdateCallback(sentinel::function<void(sentinel::camera_globals_type* camera)>* callback);
+
+/** \brief Install a \a callback that is invoked when Halo leaves the main game loop
+ *         and just before the resources of the current map instance are cleared.
+ *
+ * The game unload process consists mostly of cleaning the core state necessary to
+ * maintain the state of the current game instance, e.g. the players table.
+ * A number of allocations on the heap are freed, but the core remains allocated.
+ *
+ * \sa sentinel_Engine_DestroyEngineCallback
+ */
+SENTINEL_API
+sentinel_handle
+sentinel_Events_UnloadGameCallback(void (*callback)());
+
+/** \brief Installs a \a callback that is invoked just before the client destroys
+ *         engine resources.
+ *
+ * The engine destruction process unloads system resources from the client, including
+ * the video device and related resources, the core, and the `keystone` library.
+ */
+SENTINEL_API
+sentinel_handle
+sentinel_Events_DestroyEngineCallback(void (*callback)());
 
 } // extern "C""

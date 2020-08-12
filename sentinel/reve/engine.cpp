@@ -23,6 +23,8 @@ update_netgame_flags_tproc proc_UpdateNetgameFlags = nullptr;
 update_objects_tproc       proc_UpdateObjects      = nullptr;
 update_tick_tproc          proc_UpdateTick         = nullptr;
 update_camera_tproc        proc_UpdateCamera       = nullptr;
+unload_game_instance_tproc proc_UnloadGameInstance = nullptr;
+destroy_engine_tproc       proc_DestroyEngine      = nullptr;
 
 extrapolate_local_unit_delta_tproc    proc_ExtrapolateLocalUnitDelta   = nullptr;
 get_biped_update_position_flags_tproc proc_GetBipedUpdatePositionFlags = nullptr;
@@ -36,9 +38,29 @@ void hook_UpdateCamera(index_short local_index)
         filter(reve::globals::ptr_CameraGlobals);
 }
 
+void hook_UnloadGameInstance()
+{
+    proc_UnloadGameInstance();
+}
+
+void hook_DestroyEngine()
+{
+    proc_DestroyEngine();
+}
+
 sentinel_handle InstallCameraUpdateFilter(camera_update_filter&& filter)
 {
-    return ::camera_update_filters.push_back(std::move(filter));
+    return camera_update_filters.push_back(std::move(filter));
+}
+
+sentinel_handle InstallUnloadGameCallback([[maybe_unused]] void (*callback)())
+{
+    return nullptr;
+}
+
+sentinel_handle InstallDestroyEngineCallback([[maybe_unused]] void (*callback)())
+{
+    return nullptr;
 }
 
 bool Init()
@@ -47,6 +69,8 @@ bool Init()
         && proc_UpdateObjects
         && proc_UpdateTick
         && proc_UpdateCamera
+        && proc_UnloadGameInstance
+        && proc_DestroyEngine
         && proc_ExtrapolateLocalUnitDelta
         && proc_GetBipedUpdatePositionFlags
         && proc_UpdateBipedPosition;
@@ -58,6 +82,8 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", proc_UpdateObjects);
     SENTINEL_DEBUG_VAR("%p", proc_UpdateTick);
     SENTINEL_DEBUG_VAR("%p", proc_UpdateCamera);
+    SENTINEL_DEBUG_VAR("%p", proc_UnloadGameInstance);
+    SENTINEL_DEBUG_VAR("%p", proc_DestroyEngine);
     SENTINEL_DEBUG_VAR("%p", proc_ExtrapolateLocalUnitDelta);
     SENTINEL_DEBUG_VAR("%p", proc_GetBipedUpdatePositionFlags);
     SENTINEL_DEBUG_VAR("%p", proc_UpdateBipedPosition);

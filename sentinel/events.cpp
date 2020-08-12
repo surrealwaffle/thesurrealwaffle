@@ -37,3 +37,19 @@ sentinel_Engine_CameraUpdateCallback(sentinel::function<void(sentinel::camera_gl
     return callback ? reve::engine::InstallCameraUpdateFilter(std::move(*callback))
                     : nullptr;
 }
+
+SENTINEL_API
+sentinel_handle
+sentinel_Events_UnloadGameCallback(void (*callback)())
+{
+    return callback ? reve::engine::InstallUnloadGameCallback(callback)
+                    : nullptr;
+}
+
+SENTINEL_API
+sentinel_handle
+sentinel_Events_DestroyEngineCallback(void (*callback)())
+{
+    return callback ? reve::engine::InstallDestroyEngineCallback(callback)
+                    : nullptr;
+}

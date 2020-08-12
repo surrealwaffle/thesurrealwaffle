@@ -17,6 +17,7 @@ sentinel::VideoDevice* ptr_VideoDevice            = nullptr;
 D3DPRESENT_PARAMETERS* ptr_PresentationParameters = nullptr;
 
 renderer_begin_scene_tproc proc_RendererBeginScene = nullptr;
+renderer_reset_device_tproc proc_RendererResetVideoDevice = nullptr;;
 
 std::atomic<sentinel::CustomRendererFunction> custom_renderer = nullptr;
 
@@ -27,11 +28,26 @@ bool8 hook_RendererBeginScene()
     auto renderer = custom_renderer.load();
     if (ready && renderer != nullptr && renderer()) {
         ptr_VideoDevice->requires_end_scene = false;
-        ptr_VideoDevice->pDevice->EndScene();
         return 0; // rendering handled
     }
 
     return ready;
+}
+
+detours::meta_patch patch_ResetVideoDevice;
+bool8 tramp_ResetVideoDevice(D3DPRESENT_PARAMETERS* pPresentationParameters)
+{
+    // pre-reset callbacks
+
+    patch_ResetVideoDevice.restore();
+    const bool8 result = proc_RendererResetVideoDevice(pPresentationParameters);
+    patch_ResetVideoDevice.repatch();
+
+    if (result) {
+        // post-acquired callbacks
+    }
+
+    return result;
 }
 
 bool Init()
