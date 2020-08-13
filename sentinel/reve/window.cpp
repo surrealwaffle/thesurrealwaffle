@@ -8,6 +8,13 @@
 
 #include <sentinel/config.hpp>
 
+namespace {
+
+sentinel::resource_list<sentinel::ResetVideoDeviceCallback>   reset_device_callbacks;
+sentinel::resource_list<sentinel::AcquireVideoDeviceCallback> acquire_device_callbacks;
+
+} // namespace (anonymous)
+
 namespace reve { namespace window {
 
 HWND*                  ptr_hWnd       = nullptr;
@@ -37,7 +44,11 @@ bool8 hook_RendererBeginScene()
 detours::meta_patch patch_ResetVideoDevice;
 bool8 tramp_ResetVideoDevice(D3DPRESENT_PARAMETERS* pPresentationParameters)
 {
+    LPDIRECT3DDEVICE9 device = ptr_VideoDevice->pDevice;
+
     // pre-reset callbacks
+    for (const auto& cb : reset_device_callbacks)
+        cb(device, pPresentationParameters);
 
     patch_ResetVideoDevice.restore();
     const bool8 result = proc_RendererResetVideoDevice(pPresentationParameters);
@@ -45,6 +56,8 @@ bool8 tramp_ResetVideoDevice(D3DPRESENT_PARAMETERS* pPresentationParameters)
 
     if (result) {
         // post-acquired callbacks
+        for (const auto&  cb : acquire_device_callbacks)
+            cb(device, pPresentationParameters);
     }
 
     return result;
@@ -68,6 +81,16 @@ void Debug()
     SENTINEL_DEBUG_VAR("%p", ptr_PresentationParameters);
     SENTINEL_DEBUG_VAR("%p", proc_RendererBeginScene);
     SENTINEL_DEBUG_VAR("%p", proc_RendererResetVideoDevice);
+}
+
+sentinel_handle add_device_reset_callback(sentinel::ResetVideoDeviceCallback callback)
+{
+    return reset_device_callbacks.push_back(callback);
+}
+
+sentinel_handle add_device_acquired_callback(sentinel::AcquireVideoDeviceCallback callback)
+{
+    return acquire_device_callbacks.push_back(callback);
 }
 
 } } // namespace reve::window

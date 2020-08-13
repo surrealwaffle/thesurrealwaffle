@@ -68,6 +68,15 @@ public:
      * \return `true` if rendering was successful, otherwise `false`.
      */
     bool try_render();
+
+    /** \brief Prepares the currently installed renderer (if any) for a device reset.
+     */
+    static void device_reset(LPDIRECT3DDEVICE9 device);
+
+    /** \brief Recreates device resources that were lost from a reset.
+     */
+    static void device_acquire(LPDIRECT3DDEVICE9 device,
+                               const D3DPRESENT_PARAMETERS* params);
 };
 
 }

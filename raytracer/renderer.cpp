@@ -140,4 +140,38 @@ bool Renderer::try_render()
     return render_result == RenderResult::success;
 }
 
+void Renderer::device_reset([[maybe_unused]] LPDIRECT3DDEVICE9 device)
+{
+    if (!current_renderer)
+        return;
+
+    std::printf("reset for device\n");
+    if (current_renderer->surface) {
+        current_renderer->surface->Release();
+        current_renderer->surface = nullptr;
+    }
+}
+
+void Renderer::device_acquire(LPDIRECT3DDEVICE9 device,
+                              const D3DPRESENT_PARAMETERS* params)
+{
+    if (!current_renderer)
+        return;
+
+    device_reset(device); // just in case
+
+    if (device->CreateOffscreenPlainSurface(params->BackBufferWidth,
+                                            params->BackBufferHeight,
+                                            D3DFMT_A8R8G8B8,
+                                            D3DPOOL_DEFAULT,
+                                            &current_renderer->surface,
+                                            NULL) != D3D_OK) {
+        current_renderer->release();
+        std::printf("failed to create offscreen plain surface\n");
+        return;
+    }
+
+    std::printf("reacquired device\n");
+}
+
 }

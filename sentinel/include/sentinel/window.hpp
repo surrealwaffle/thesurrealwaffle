@@ -56,7 +56,11 @@ struct cursor_info {
     // quite a bit more goes here
 };
 
-using CustomRendererFunction = bool(*)();
+using CustomRendererFunction     = bool(*)();
+using ResetVideoDeviceCallback   = void(*)(LPDIRECT3DDEVICE9      device,
+                                           D3DPRESENT_PARAMETERS* pPresentationParameters);
+using AcquireVideoDeviceCallback = void(*)(LPDIRECT3DDEVICE9            device,
+                                           const D3DPRESENT_PARAMETERS* pPresentationParameters);
 
 static_assert(offsetof(VideoDevice, heap1) == 0x00);
 static_assert(offsetof(VideoDevice, heap2) == 0x04);
@@ -112,5 +116,24 @@ sentinel_video_GetPresentationParameters();
 SENTINEL_API
 sentinel_handle
 sentinel_video_InstallCustomRenderer(sentinel::CustomRendererFunction renderer);
+
+/** \brief Installs a \a callback that is invoked before the video device is being
+ *         reset (by `device->Reset()`).
+ *
+ * This callback may be invoked multiple times before the video device is acquired.
+ */
+SENTINEL_API
+sentinel_handle
+sentinel_video_ResetVideoDeviceCallback(sentinel::ResetVideoDeviceCallback callback);
+
+/** \brief Installs a \a callback that is invoked after the video device is acquired
+ *         from a call to `device->Reset()` that returns `D3D_OK`.
+ *
+ * Any of Halo's resources that are lost from the device reset are recreated by the
+ * time the callback is invoked.
+ */
+SENTINEL_API
+sentinel_handle
+sentinel_video_AcquireVideoDeviceCallback(sentinel::AcquireVideoDeviceCallback callback);
 
 } // extern "C"

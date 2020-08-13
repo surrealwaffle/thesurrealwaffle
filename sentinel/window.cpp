@@ -46,3 +46,17 @@ sentinel_video_InstallCustomRenderer(sentinel::CustomRendererFunction renderer)
         ? sentinel::callback_handle([] (auto&&) { custom_renderer.store(nullptr); })
         : nullptr;
 }
+
+SENTINEL_API
+sentinel_handle
+sentinel_video_ResetVideoDeviceCallback(sentinel::ResetVideoDeviceCallback callback)
+{
+    return reve::window::add_device_reset_callback(callback);
+}
+
+SENTINEL_API
+sentinel_handle
+sentinel_video_AcquireVideoDeviceCallback(sentinel::AcquireVideoDeviceCallback callback)
+{
+    return reve::window::add_device_acquired_callback(callback);
+}

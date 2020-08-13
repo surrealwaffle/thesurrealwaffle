@@ -2,6 +2,7 @@
 
 #include <d3d9.h>
 
+#include <sentinel/window.hpp>
 #include <sentutil/all.hpp>
 
 #include "renderer.hpp"
@@ -30,7 +31,10 @@ bool Load()
 
             return current_renderer.is_installed();
         }, "enables or disables the raytracing renderer"
-    );
+    ) && sentutil::utility::manage_handle(sentinel_Events_DestroyEngineCallback(+[] { current_renderer.release(); }))
+      && sentutil::utility::manage_handle(sentinel_video_ResetVideoDeviceCallback(+[] (LPDIRECT3DDEVICE9 device, D3DPRESENT_PARAMETERS*) { current_renderer.device_reset(device); }))
+      && sentutil::utility::manage_handle(sentinel_video_AcquireVideoDeviceCallback(+current_renderer.device_acquire));
+
 }
 
 }
@@ -85,13 +89,15 @@ blamtracer::RenderResult sample_renderer(LPDIRECT3DSURFACE9 pSurface)
     }
 
     std::uint8_t* bytes = reinterpret_cast<std::uint8_t*>(lockedRect.pBits);
-    const int stride = 4; // assumed format A8R8G8B8 or X8R8G8B8
-    for (DWORD row = 0; row < desc.Height; ++row) {
-        for (DWORD column = 0; column < desc.Width; ++column) {
-            std::uint8_t* pixel = &bytes[column * stride + row * lockedRect.Pitch];
-            std::uint8_t& blue = pixel[0];
-            std::uint8_t& green = pixel[1];
-            std::uint8_t& red = pixel[2];
+
+    const int stride = 4; // between pixels
+    const auto row_margin = lockedRect.Pitch - desc.Width * stride;
+
+    for (DWORD row = 0; row < desc.Height; ++row, bytes += row_margin) {
+        for (DWORD column = 0; column < desc.Width; ++column, bytes += stride) {
+            std::uint8_t& blue = bytes[0];
+            std::uint8_t& green = bytes[1];
+            std::uint8_t& red = bytes[2];
 
             red = 255;
             green = 30;

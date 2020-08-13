@@ -223,6 +223,7 @@ private:
 } // namespace sentinel
 
 // Framework Internals
+// todo: Move this stuff out of here
 
 #ifdef SENTINEL_BUILD_DLL
 #include <algorithm>   // std::find_if

@@ -63,7 +63,6 @@ extern std::atomic<sentinel::CustomRendererFunction> custom_renderer;
 bool8 hook_RendererBeginScene() __attribute__((cdecl));
 
 extern detours::meta_patch patch_ResetVideoDevice;
-
 bool8 tramp_ResetVideoDevice(D3DPRESENT_PARAMETERS* pPresentationParameters) __attribute__((cdecl));
 
 bool Init();
@@ -72,6 +71,9 @@ void Debug();
 
 static_assert(std::is_same_v<renderer_begin_scene_tproc, decltype(&hook_RendererBeginScene)>);
 static_assert(std::is_same_v<renderer_reset_device_tproc, decltype(&tramp_ResetVideoDevice)>);
+
+sentinel_handle add_device_reset_callback(sentinel::ResetVideoDeviceCallback callback);
+sentinel_handle add_device_acquired_callback(sentinel::AcquireVideoDeviceCallback callback);
 
 } } // namespace reve::window
 

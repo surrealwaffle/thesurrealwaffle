@@ -14,6 +14,8 @@
 namespace {
 
 sentinel::resource_list<reve::engine::camera_update_filter> camera_update_filters;
+sentinel::resource_list<void(*)()> unload_game_callbacks;
+sentinel::resource_list<void(*)()> destroy_engine_callbacks;
 
 } // namespace (anonymous)
 
@@ -40,11 +42,17 @@ void hook_UpdateCamera(index_short local_index)
 
 void hook_UnloadGameInstance()
 {
+    for (const auto& cb : unload_game_callbacks)
+        cb();
+
     proc_UnloadGameInstance();
 }
 
 void hook_DestroyEngine()
 {
+    for (const auto& cb : destroy_engine_callbacks)
+        cb();
+
     proc_DestroyEngine();
 }
 
@@ -53,14 +61,14 @@ sentinel_handle InstallCameraUpdateFilter(camera_update_filter&& filter)
     return camera_update_filters.push_back(std::move(filter));
 }
 
-sentinel_handle InstallUnloadGameCallback([[maybe_unused]] void (*callback)())
+sentinel_handle InstallUnloadGameCallback(void (*callback)())
 {
-    return nullptr;
+    return unload_game_callbacks.push_back(callback);
 }
 
-sentinel_handle InstallDestroyEngineCallback([[maybe_unused]] void (*callback)())
+sentinel_handle InstallDestroyEngineCallback(void (*callback)())
 {
-    return nullptr;
+    return destroy_engine_callbacks.push_back(callback);
 }
 
 bool Init()
