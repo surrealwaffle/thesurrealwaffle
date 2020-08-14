@@ -46,23 +46,36 @@ void sentinel_FreeHandle(sentinel_handle handle) {
 }
 
 SENTINEL_API
-int
-sentinel_GetLocalPlayerNetworkIndex()
+sentinel::identity<sentinel::player>
+sentinel_GetLocalPlayer()
 {
     auto* players = sentinel_Globals_tables.player_table;
     if (!players)
-        return -1;
+        return sentinel::invalid_identity;
 
-    auto is_desired_player
-        = [] (const auto& player) { return player.local_index == 0; };
-
-    auto player = std::find_if(players->cbegin(), players->cend(),
-                               is_desired_player);
+    auto is_local = [] (const auto& player) { return player.is_local(); };
+    auto player = std::find_if(players->cbegin(), players->cend(), is_local);
 
     if (player == players->cend())
-        return -1;
+        return sentinel::invalid_identity;
 
-    return player->network_index;
+    return sentinel::identity<sentinel::player>::piecewise(player.base() - players->cbegin().base(), player->salt);
+}
+
+SENTINEL_API
+sentinel::identity<sentinel::unit>
+sentinel_GetLocalPlayerUnit()
+{
+    auto player = sentinel_GetLocalPlayer();
+    return player ? player->unit : sentinel::invalid_identity;
+}
+
+SENTINEL_API
+int
+sentinel_GetLocalPlayerNetworkIndex()
+{
+    auto player = sentinel_GetLocalPlayer();
+    return player ? player->network_index : -1;
 }
 
 SENTINEL_API

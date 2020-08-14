@@ -23,6 +23,13 @@
 #include <sentinel/detail/inplace_ops_traits.hpp>
 #include <sentinel/detail/unique_callable.hpp>
 
+namespace sentinel {
+
+struct player;
+struct unit;
+
+}
+
 extern "C" {
 
 /** \brief Provides user lifetime control over resources shared from the user library
@@ -60,6 +67,25 @@ sentinel_MakeHandle(void* resource,
 SENTINEL_API
 void
 sentinel_FreeHandle(sentinel_handle handle);
+
+/** \brief Finds the local player.
+ *
+ * \return The identity of the local player, or
+ *         `sentinel::invalid_identity` if the local player does not exist.
+ */
+SENTINEL_API
+sentinel::identity<sentinel::player>
+sentinel_GetLocalPlayer();
+
+/** \brief Finds the local player's unit.
+ *
+ * \return The identiy of the local player's unit, or
+ *         `sentinel::invalid_identity` if the player or their unit do not exist.
+ */
+SENTINEL_API
+sentinel::identity<sentinel::unit>
+sentinel_GetLocalPlayerUnit();
+
 
 /** \brief Retrieves the network index of the local player.
  *

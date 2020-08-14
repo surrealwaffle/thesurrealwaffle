@@ -267,8 +267,11 @@ struct identity {
    static_assert(alignof(identity<void>) == alignof(identity_raw));
 
 struct invalid_identity_type {
+    static constexpr identity_raw raw = static_cast<identity_raw>(-1);
+
     template<class DatumType>
-    constexpr operator identity<DatumType>() const noexcept { return {-1u}; }
+    constexpr operator identity<DatumType>() const noexcept { return {raw}; }
+
 };
 
 inline constexpr invalid_identity_type invalid_identity = {};
