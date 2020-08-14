@@ -65,6 +65,7 @@
 		<Unit filename="main.h" />
 		<Unit filename="renderer.cpp" />
 		<Unit filename="renderer.hpp" />
+		<Unit filename="thread_pool.hpp" />
 		<Extensions />
 	</Project>
 </CodeBlocks_project_file>

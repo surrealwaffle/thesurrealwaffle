@@ -1,7 +1,9 @@
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
+#include <winsock2.h>
 #include <windows.h>
+#include <d3d9.h>
 
 /*  To use this exported function of dll, include this header
  *  in your project.
