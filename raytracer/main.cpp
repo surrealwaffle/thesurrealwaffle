@@ -113,6 +113,14 @@ struct alignas(std::uint32_t) color {
     std::uint8_t alpha;
 };
 
+constexpr color operator*(float f, const color& c)
+{
+    return {static_cast<std::uint8_t>(f * c.blue),
+            static_cast<std::uint8_t>(f * c.green),
+            static_cast<std::uint8_t>(f * c.red),
+            c.alpha};
+}
+
 color get_color(std::optional<sentinel::identity<sentinel::object>> source_object,
                 const sentinel::affine_matrix3d& camera,
                 const projective_settings& settings,
@@ -139,11 +147,13 @@ color get_color(std::optional<sentinel::identity<sentinel::object>> source_objec
     const sentinel::real3d ray_direction = normalized(camera.ortho_transform * sentinel::real3d{near_plane, -x, y});
 
     if (auto result = sentutil::raycast::cast_projectile_ray(camera.translation, ray_distance * ray_direction, source_object.value_or(sentinel::invalid_identity))) {
-        switch (result.value().hit_type) {
-        case 0: return hit_water;
-        case 2: return hit_environment;
-        case 3: return hit_object;
-        default: return hit_unknown;
+        const sentinel::raycast_result_type& hit_result = result.value();
+        const float perp = std::max(0.5f, std::abs(dot(hit_result.plane.normal, camera.ortho_transform[0])));
+        switch (hit_result.hit_type) {
+        case 0: return perp * hit_water;
+        case 2: return perp * hit_environment;
+        case 3: return perp * hit_object;
+        default: return perp * hit_unknown;
         }
     }
 
