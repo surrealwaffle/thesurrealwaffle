@@ -4,6 +4,7 @@
 
 #include <atomic>
 #include <iostream>
+#include <memory>
 
 #include <sentinel/window.hpp>
 #include <sentutil/all.hpp>
@@ -13,7 +14,7 @@
 
 namespace {
 
-blamtracer::thread_pool  thread_pool(6);
+std::unique_ptr<blamtracer::thread_pool> thread_pool;
 float                    fovy         = 0.94247779607694f; // 54 degrees
 float                    ray_distance = 4.0f;
 blamtracer::Renderer     current_renderer;
@@ -43,11 +44,20 @@ bool Load()
             if (value) ray_distance = std::max(value.value(), 0.0f);
             return ray_distance;
         }, "changes the maximum distance at which rays may be cast"
+    ) && sentutil::script::install_script_function<"sentinel_raytracer_threads"> (
+        +[] (short threads)
+        {
+            if (threads <= 0)
+                threads = 1;
+
+            thread_pool.release();
+            thread_pool = std::make_unique<blamtracer::thread_pool>(static_cast<std::size_t>(threads));
+        }
     ) && sentutil::utility::manage_handle(sentinel_Events_UnloadGameCallback(
         +[]
         {
             current_renderer.release();
-            thread_pool.shutdown();
+            thread_pool.release();
         }))
       && sentutil::utility::manage_handle(sentinel_video_ResetVideoDeviceCallback(+[] (LPDIRECT3DDEVICE9 device, D3DPRESENT_PARAMETERS*) { current_renderer.device_reset(device); }))
       && sentutil::utility::manage_handle(sentinel_video_AcquireVideoDeviceCallback(+current_renderer.device_acquire));
@@ -215,7 +225,9 @@ void process_image(std::uint8_t* pImage, const D3DSURFACE_DESC& desc, DWORD imag
     width = desc.Width;
     pitch = imagePitch;
 
-    thread_pool.push_tasks(desc.Height, [] (...) { return process_next_row; }).join();
+    if (!thread_pool)
+        thread_pool = std::make_unique<blamtracer::thread_pool>(1);
+    thread_pool->push_tasks(desc.Height, [] (...) { return process_next_row; }).join();
     //for (auto rows_left = desc.Height; rows_left; --rows_left)
     //  process_next_row();
 }
