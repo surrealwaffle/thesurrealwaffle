@@ -4,18 +4,15 @@ namespace blamtracer {
 
 thread_pool::thread_pool(std::size_t thread_count)
     : mutex()
-    , do_stop()
+    , do_stop(ATOMIC_VAR_INIT(false))
     , tasks_cv()
     , tasks()
-    , idle_count()
+    , idle_count(ATOMIC_VAR_INIT(static_cast<std::size_t>(0)))
     , fully_idle_cv()
     , workers()
 {
     thread_count = std::max(std::size_t(1), thread_count);
     workers.reserve(thread_count);
-
-    do_stop.store(false);
-    idle_count.store(0);
 
     for (; thread_count; --thread_count)
         workers.emplace_back(worker_implementation, std::ref(*this));
