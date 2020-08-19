@@ -47,7 +47,7 @@ void thread_pool::join()
 
 void thread_pool::shutdown()
 {
-    do_stop.store(true, std::memory_order_release);
+    do_stop.store(true, std::memory_order_relaxed);
     tasks_cv.notify_all();
     for (auto& thread : workers)
         thread.join();
@@ -65,7 +65,10 @@ void thread_pool::worker_implementation(thread_pool& pool)
     auto add_as_idle = [&pool, &is_idle] {
         const bool added = !is_idle;
         is_idle = true;
-        const std::size_t amount_idle = added + pool.idle_count.fetch_add(added, std::memory_order_relaxed);
+        if (!added)
+            return;
+
+        const std::size_t amount_idle = added + pool.idle_count.fetch_add(added, std::memory_order_acq_rel);
         if (amount_idle == pool.workers.size())
             pool.fully_idle_cv.notify_all();
     };

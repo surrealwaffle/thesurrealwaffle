@@ -221,9 +221,9 @@ void process_image(std::uint8_t* pImage, const D3DSURFACE_DESC& desc, DWORD imag
         camera_globals.position
     };
     settings = projective_settings(fovy, desc.Width, desc.Height);
-    row.store(0L, std::memory_order_release);
     width = desc.Width;
     pitch = imagePitch;
+    row.store(0L, std::memory_order_release);
 
     if (!thread_pool)
         thread_pool = std::make_unique<blamtracer::thread_pool>(1);
