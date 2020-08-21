@@ -42,6 +42,9 @@ public:
     thread_pool& operator=(thread_pool&&)      = delete; ///< DELETED
 
     /** \brief Blocks the current thread until all tasks have been completed.
+     *
+     * When the calling thread returns from `join()`, all writes from the worker
+     * threads will be observed.
      */
     void join();
 
@@ -49,6 +52,9 @@ public:
      *
      * Claimed tasks will be finished, but unclaimed tasks may be unprocessed when
      * this function returns.
+     *
+     * Unlike `join()`, there is no guarantee on the order of memory writes that
+     * arrive from the worker threads when this function returns.
      */
     void shutdown();
 
