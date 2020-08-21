@@ -190,6 +190,58 @@ struct profile_user_name_type {
     h_wchar name[12];
 };
 
+struct CinematicCore {
+    struct CinematicTitleEntry {
+        index_short cutscene_title_index; ///< Indexes into cutscene_titles in the scenario tag, or `-1` for an empty entry.
+        ticks_short ticks_shown; ///< The number of ticks this title has been shown for.
+                                 ///< If negative, then this instance is delayed by that number of ticks.
+    }; static_assert(sizeof(CinematicTitleEntry) == 0x04);
+
+    fraction   shown_amount; ///< 0.0 = faded/no letterbox, 1.0 = fully opaque/letterbox
+    ticks_long shown_ticks;  ///< The amount of ticks the cutscene titles have been presented for.
+
+    boolean show_letterbox; // cinematic_show_letterbox
+    boolean in_cutscene;
+    boolean skip_start_internal; // cinematic_skip_start_internal/cinematic_skip_stop_internal
+    boolean suppress_bsp_object_creation; // cinematic_suppress_bsp_object_creation
+
+    CinematicTitleEntry shown_titles[4];
+}; static_assert(sizeof(CinematicCore) == 0x1C);
+
+struct WidgetMemoryPool {
+    h_ccstr  usage; ///< "widget_memory_pool"
+    void*    allocation_base;
+    uint32   allocation_size;
+    h_long   capacity; ///< The maximum number of widgets that can be allocated.
+
+    index_long end_index; // 1-past-end fashion, see occupancy
+    h_long unknown0;
+    h_long unknown1;
+
+    h_long occupancy; ///< The number of allocations in #allocations.
+                      ///< There may be null gaps in the range `[+allocations, +allocations + end_index]`.
+    h_long historic_occupancy; ///< The maximum #occupancy recorded.
+    h_long unknown3;
+
+    h_long unused; // unused as far as i can tell
+
+    // all non-null pointers below are within the allocation
+    void* head_allocation;
+    void* tail_allocation;
+    void* allocations[];
+}; static_assert(sizeof(WidgetMemoryPool) == 0x34);
+
+static_assert(offsetof(WidgetMemoryPool, usage) == 0x00);
+static_assert(offsetof(WidgetMemoryPool, allocation_base) == 0x04);
+static_assert(offsetof(WidgetMemoryPool, allocation_size) == 0x08);
+static_assert(offsetof(WidgetMemoryPool, capacity) == 0x0C);
+static_assert(offsetof(WidgetMemoryPool, end_index) == 0x10);
+static_assert(offsetof(WidgetMemoryPool, occupancy) == 0x1C);
+static_assert(offsetof(WidgetMemoryPool, historic_occupancy) == 0x20);
+static_assert(offsetof(WidgetMemoryPool, head_allocation) == 0x2C);
+static_assert(offsetof(WidgetMemoryPool, tail_allocation) == 0x30);
+static_assert(offsetof(WidgetMemoryPool, allocations) == 0x34);
+
 static_assert(offsetof(machine_globals_type, now_count) == 0x00);
 static_assert(offsetof(machine_globals_type, now_millis) == 0x08);
 static_assert(offsetof(machine_globals_type, unknown_counter) == 0x10);

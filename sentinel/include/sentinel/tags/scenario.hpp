@@ -83,11 +83,25 @@ struct scenario {
     tag_block<void> decals;
     tag_block<tag_reference<void>> decal_palette;
 
-    int32 unknown2[48];
+    int32 unknown2[45];
 
-    table_type<script_node_type> *script_node;
+    tag_blob<table_type<script_node_type>> script_node;
+    tag_blob<char>                         string_data; // All null-terminated, possibly just for script purposes only
+    tag_block<void>                        scripts; // element size of 0x5C
+    tag_block<void>                        globals; // element size of 0x5C
+    tag_block<void> unknown3; // contains references to tags
 
-    int32 unknown3[72]; // mostly scripting, AI, globals, cutscenes
+    int32 unknown4[9];
+
+    tag_block<void> cutscene_flags;  // element size of 0x5C
+    tag_block<void> cutscene_camera_points; // element size of 0x68
+    tag_block<void> cutscene_titles; // element size of 0x60
+
+    int32 unknown5[27];
+
+    tag_reference<void> custom_object_names; // ustr
+    tag_reference<void> ingame_help_text; // ustr
+    tag_reference<void> hud_messages; // ustr
 
     tag_block<structure_bsp_block_element> structure_bsps;
 }; static_assert(sizeof(scenario) == 0x5B0);
@@ -100,7 +114,17 @@ static_assert(offsetof(scenario, starting_equipment) == 0x390);
 static_assert(offsetof(scenario, bsp_switch_trigger_volumes) == 0x39C);
 static_assert(offsetof(scenario, decals) == 0x3A8);
 static_assert(offsetof(scenario, decal_palette) == 0x3B4);
-
+static_assert(offsetof(scenario, script_node) == 0x474);
+static_assert(offsetof(scenario, string_data) == 0x488);
+static_assert(offsetof(scenario, scripts) == 0x49C);
+static_assert(offsetof(scenario, globals) == 0x4A8);
+static_assert(offsetof(scenario, unknown3) == 0x4B4);
+static_assert(offsetof(scenario, cutscene_flags) == 0x4E4);
+static_assert(offsetof(scenario, cutscene_camera_points) == 0x4F0);
+static_assert(offsetof(scenario, cutscene_titles) == 0x4FC);
+static_assert(offsetof(scenario, custom_object_names) == 0x574);
+static_assert(offsetof(scenario, ingame_help_text) == 0x584);
+static_assert(offsetof(scenario, hud_messages) == 0x594);
 static_assert(offsetof(scenario, structure_bsps) == 0x5A4);
 
 struct scenario::scenery_block_element {

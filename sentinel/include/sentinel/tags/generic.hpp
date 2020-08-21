@@ -79,4 +79,21 @@ struct tag_block {
     }
 }; static_assert(sizeof(tag_block<void>) == 0x0C);
 
+template<class T>
+struct tag_blob {
+    using value_type = T;
+    using pointer = T*;
+    using const_pointer = T const*;
+
+    h_long  bytes;
+    h_long  unknown0;
+    h_long  unknown1;
+    pointer data;
+    h_long  unknown2;
+
+    pointer operator*() const noexcept { return data; }
+    pointer operator->() const noexcept { return data; }
+    operator pointer() const noexcept { return data; }
+}; static_assert(sizeof(tag_blob<void>) == 0x14);
+
 } } // namespace sentinel::tags
