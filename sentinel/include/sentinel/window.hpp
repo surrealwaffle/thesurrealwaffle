@@ -58,7 +58,23 @@ struct InputGlobals {
 		h_short    keycode;   // internally translated, need work on this
 	};
 
+	struct MouseState {
+        h_long horizontal; ///< Horizontal mouse movement (as viewed from above).
+        h_long vertical;   ///< Vertical mouse movement (as viewed from above).
+        h_long wheel;      ///< Mouse wheel, comes divided by granularity if non-zero.
+
+        h_ubyte button_state[8];   ///< Indicates how long a button as been held, up to
+                                   ///< `255`, or `0` if the button is not held.
+        h_ubyte button_changed[8]; ///< Indicates a change in #button_state at
+                                   ///< corresponding indices with a value of `1`, and
+                                   ///< `0` to indicate no change in state.
+	}; static_assert(sizeof(MouseState) == 0x1C);
+
 	boolean initialized;
+	boolean use_virtual_mouse; ///< If `true`, Halo will use #enumerated_devices.virtual_mouse_state
+	                           ///< for input, else #enumerated_devices.direct_mouse_state.
+	                           ///< Halo always sets this to `false`.
+
 	LPDIRECTINPUT8 direct_input;
 
 	Unknown0 unknown0[4]; // possibly last time of device update for each local player
@@ -66,18 +82,20 @@ struct InputGlobals {
 	h_byte   unknown2[0x6D];
 
 	index_short buffered_key_read_index;
-	h_short     buffered_keys_length;
+	h_short     buffered_keys_count;
 	BufferedKey buffered_keys[0x40];
 
 	struct {
 		LPDIRECTINPUTDEVICE direct_keyboard;
 
 		LPDIRECTINPUTDEVICE direct_mouse;
-		h_ulong             direct_mouse_z_axis_granularity;
-		h_byte unknown3[0x1C]; // seems to be a buffer for mouse state
-		h_byte unknown4[0x1C]; // similar to above
+		h_ulong             direct_mouse_z_granularity; ///< Granularity for the z-axis (mouse wheel).
+		MouseState          direct_mouse_state;
+		MouseState          virtual_mouse_state; ///< Never written to by `Halo`, see #use_virtual_mouse.
+		                                         ///< Presumably this used to be part of some harness
+		                                         ///< for providing programmed control over the game.
 
-		index_short next_joystick;
+		index_short         next_joystick; ///< The index of the next unoccupied joystick slot in #direct_joysticks.
 		LPDIRECTINPUTDEVICE direct_joysticks[8];
 		h_byte unknown5[0x240][8]; // joystick state
 	} enumerated_devices;
@@ -118,7 +136,7 @@ static_assert(offsetof(VideoDevice, pD3D) == 0x2C);
 static_assert(offsetof(InputGlobals, initialized) == 0x000);
 static_assert(offsetof(InputGlobals, direct_input) == 0x004);
 static_assert(offsetof(InputGlobals, buffered_key_read_index) == 0x102);
-static_assert(offsetof(InputGlobals, buffered_keys_length) == 0x104);
+static_assert(offsetof(InputGlobals, buffered_keys_count) == 0x104);
 static_assert(offsetof(InputGlobals, buffered_keys) == 0x106);
 static_assert(offsetof(InputGlobals, enumerated_devices.direct_keyboard) == 0x208);
 static_assert(offsetof(InputGlobals, enumerated_devices.direct_mouse) == 0x20C);
