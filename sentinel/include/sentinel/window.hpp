@@ -63,8 +63,26 @@ struct InputGlobals {
         h_long vertical;   ///< Vertical mouse movement (as viewed from above).
         h_long wheel;      ///< Mouse wheel, comes divided by granularity if non-zero.
 
-        h_ubyte button_state[8];   ///< Indicates how long a button as been held, up to
-                                   ///< `255`, or `0` if the button is not held.
+        /** \brief Indicates how long a mouse button has been held for.
+         *
+         * For every update of the mouse state, if a mouse button is down, then its
+         * value this array increments up to `255`. If the button is not down, then
+         * the value is set to `0`.
+         *
+         * Device state query rate is (generally) tied to framerate.
+         * For high framerates, these button values reach the maximum quite quickly.
+         */
+        h_ubyte button_state[8];
+
+        /** \brief Indicates that a mouse button has just been pressed or released.
+         *
+         * Contains a non-zero value if the mouse has transitioned from a released
+         * state to a pressed state or from a held state to a released state, and
+         * contains `0` otherwise.
+         *
+         * Effectively, this indicates that the corresponding value in #button_state
+         * has gone from `0` to `1` or from a non-zero value to  `0`.
+         */
         h_ubyte button_changed[8]; ///< Indicates a change in #button_state at
                                    ///< corresponding indices with a value of `1`, and
                                    ///< `0` to indicate no change in state.
@@ -86,17 +104,17 @@ struct InputGlobals {
 	BufferedKey buffered_keys[0x40];
 
 	struct {
-		LPDIRECTINPUTDEVICE direct_keyboard;
+		LPDIRECTINPUTDEVICE direct_keyboard; ///< An interface for the system keyboard device.
 
-		LPDIRECTINPUTDEVICE direct_mouse;
+		LPDIRECTINPUTDEVICE direct_mouse;        ///< An interface for the system mouse device.
 		h_ulong             direct_mouse_z_granularity; ///< Granularity for the z-axis (mouse wheel).
-		MouseState          direct_mouse_state;
+		MouseState          direct_mouse_state;  ///< The mouse state as *translated* from `direct_mouse->GetDeviceState`.
 		MouseState          virtual_mouse_state; ///< Never written to by `Halo`, see #use_virtual_mouse.
 		                                         ///< Presumably this used to be part of some harness
 		                                         ///< for providing programmed control over the game.
 
 		index_short         next_joystick; ///< The index of the next unoccupied joystick slot in #direct_joysticks.
-		LPDIRECTINPUTDEVICE direct_joysticks[8];
+		LPDIRECTINPUTDEVICE direct_joysticks[8]; ///< Interfaces for the registered gamepad/joystick devices.
 		h_byte unknown5[0x240][8]; // joystick state
 	} enumerated_devices;
 }; static_assert(sizeof(InputGlobals) == 0x1470);
