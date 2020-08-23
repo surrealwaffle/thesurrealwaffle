@@ -115,7 +115,11 @@ static_assert(offsetof(VideoDevice, requires_end_scene) == 0x23);
 static_assert(offsetof(VideoDevice, pDevice) == 0x28);
 static_assert(offsetof(VideoDevice, pD3D) == 0x2C);
 
+static_assert(offsetof(InputGlobals, initialized) == 0x000);
+static_assert(offsetof(InputGlobals, direct_input) == 0x004);
 static_assert(offsetof(InputGlobals, buffered_key_read_index) == 0x102);
+static_assert(offsetof(InputGlobals, buffered_keys_length) == 0x104);
+static_assert(offsetof(InputGlobals, buffered_keys) == 0x106);
 static_assert(offsetof(InputGlobals, enumerated_devices.direct_keyboard) == 0x208);
 static_assert(offsetof(InputGlobals, enumerated_devices.direct_mouse) == 0x20C);
 static_assert(offsetof(InputGlobals, enumerated_devices.next_joystick) == 0x24C);
