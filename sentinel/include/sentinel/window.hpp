@@ -74,18 +74,15 @@ struct InputGlobals {
          */
         h_ubyte button_state[8];
 
-        /** \brief Indicates that a mouse button has just been pressed or released.
+        /** \brief Indicates that a mouse button has been released.
          *
-         * Contains a non-zero value if the mouse has transitioned from a released
-         * state to a pressed state or from a held state to a released state, and
-         * contains `0` otherwise.
+         * Contains a non-zero value if the button has transitioned from a pressed
+         * state to a released state.
          *
          * Effectively, this indicates that the corresponding value in #button_state
-         * has gone from `0` to `1` or from a non-zero value to  `0`.
+         * has gone from a non-zero value to `0`.
          */
-        h_ubyte button_changed[8]; ///< Indicates a change in #button_state at
-                                   ///< corresponding indices with a value of `1`, and
-                                   ///< `0` to indicate no change in state.
+        h_ubyte button_changed[8];
 	}; static_assert(sizeof(MouseState) == 0x1C);
 
 	boolean initialized;
