@@ -61,7 +61,7 @@ struct InputGlobals {
 	struct MouseState {
         h_long horizontal; ///< Horizontal mouse movement (as viewed from above).
         h_long vertical;   ///< Vertical mouse movement (as viewed from above).
-        h_long wheel;      ///< Mouse wheel, comes divided by granularity if non-zero.
+        h_long wheel;      ///< Mouse wheel, comes divided by granularity, if granularity is non-zero.
 
         /** \brief Indicates how long a mouse button has been held for.
          *
@@ -82,15 +82,27 @@ struct InputGlobals {
          * Effectively, this indicates that the corresponding value in #button_state
          * has gone from a non-zero value to `0`.
          */
-        h_ubyte button_changed[8];
+        boolean button_changed[8];
 	}; static_assert(sizeof(MouseState) == 0x1C);
 
-	boolean initialized;
-	boolean use_virtual_mouse; ///< If `true`, Halo will use #enumerated_devices.virtual_mouse_state
-	                           ///< for input, else #enumerated_devices.direct_mouse_state.
-	                           ///< Halo always sets this to `false`.
+	/** \brief Indicates that the enumerated devices are acquired with `true`,
+	 *         or `false` if the devices are not acquired.
+	 */
+	boolean devices_acquired;
 
-	LPDIRECTINPUT8 direct_input;
+	/** \brief A switch that forces Halo to use various virtual input state buffers.
+	 *
+	 * This is never set `true` by Halo, but all the mechanisms that change input
+	 * behavior are still implemented.
+	 * For instance, if this value is `true`, then `enumerated_devices.direct_mouse_state`
+	 * is ignored and mouse input is pulled from `enumerated_devices.virtual_mouse_state`.
+	 *
+	 * This was presumably implemented for Gearbox to have a consist device to test.
+	 * This value is set to `false` when the input devices are unacquired.
+	 */
+	boolean use_virtual_input;
+
+	LPDIRECTINPUT8 direct_input; ///< The `DirectInput` interface.
 
 	Unknown0 unknown0[4]; // possibly last time of device update for each local player
 	h_byte   unknown1[0x6D];
@@ -101,9 +113,18 @@ struct InputGlobals {
 	BufferedKey buffered_keys[0x40];
 
 	struct {
-		LPDIRECTINPUTDEVICE direct_keyboard; ///< An interface for the system keyboard device.
+	    /** \brief A device interface for the system keyboard device.
+	     *
+	     * The data format for this interface is `c_dfDIKeyboard`.
+	     */
+		LPDIRECTINPUTDEVICE direct_keyboard;
 
-		LPDIRECTINPUTDEVICE direct_mouse;        ///< An interface for the system mouse device.
+		/** \brief A device interface for the system mouse device.
+		 *
+		 * The data format for this interface is `c_dfDIMouse2`, for which
+		 * `DIMOUSESTATE2` is appropriate for querying this device's buffered state.
+		 */
+		LPDIRECTINPUTDEVICE direct_mouse;
 		h_ulong             direct_mouse_z_granularity; ///< Granularity for the z-axis (mouse wheel).
 		MouseState          direct_mouse_state;  ///< The mouse state as *translated* from `direct_mouse->GetDeviceState`.
 		MouseState          virtual_mouse_state; ///< Never written to by `Halo`, see #use_virtual_mouse.
